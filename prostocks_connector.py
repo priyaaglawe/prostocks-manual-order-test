@@ -1,3 +1,5 @@
+# prostocks_login_only.py
+
 import hashlib
 import requests
 import json
@@ -68,93 +70,8 @@ class ProStocksAPI:
         except requests.exceptions.RequestException as e:
             return False, f"RequestException: {e}"
 
-    # 🔍 Add below login
-    def get_quotes(self, symbol, exchange="NSE"):
-        """
-        Fetches live market data (LTP, OHLC, etc.) for the given symbol.
-        """
-        try:
-            payload = {
-                "uid": self.userid,
-                "exch": exchange,
-                "tsym": symbol,
-            }
-            url = f"{self.base_url}/QuickQuote"
-            response = self.session.get(url, params=payload, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
-            return data
-        except Exception as e:
-            print(f"❌ Error in get_quotes for {symbol}: {e}")
-            return None
 
-    # 💰 Add below get_quotes
-    def get_ltp(self, symbol, exchange="NSE"):
-        """
-        Returns the Last Traded Price (LTP) of the given symbol.
-        """
-        try:
-            quote = self.get_quotes(symbol, exchange)
-            return float(quote.get("lp", 0)) if quote else None
-        except Exception as e:
-            print(f"❌ Error in get_ltp for {symbol}: {e}")
-            return None
-    def get_ltp(self, symbol, exchange="NSE"):
-        """
-        Returns the Last Traded Price (LTP) of the given symbol.
-        """
-        try:
-            quote = self.get_quotes(symbol, exchange)
-            return float(quote.get("lp", 0)) if quote else None
-        except Exception as e:
-            print(f"❌ Error in get_ltp for {symbol}: {e}")
-            return None
-
-       # 📊 Add below get_ltp
-    def get_candles(self, symbol, interval="5", exchange="NSE", days=1, limit=None):
-        """
-        Fetches historical OHLC candle data for the given symbol.
-
-        interval:
-            "1" - 1 minute
-            "3" - 3 minutes
-            "5" - 5 minutes
-            "15" - 15 minutes
-            "30" - 30 minutes
-            "60" - 1 hour
-            "D" - 1 day
-
-        days: number of past days to fetch
-        limit: optional, max number of candles to return
-        """
-        try:
-            payload = {
-                "uid": self.userid,
-                "exch": exchange,
-                "token": symbol,
-                "interval": interval,
-                "days": str(days)
-            }
-            url = f"{self.base_url}/GetCandleData"
-            response = self.session.get(url, params=payload, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
-
-            if data.get("stat") == "Ok":
-                candles = data.get("candles", [])
-                if limit:
-                    return candles[-limit:]  # Return only the last 'limit' candles
-                return candles
-            else:
-                print(f"❌ get_candles error: {data.get('emsg', 'Unknown error')}")
-                return []
-        except Exception as e:
-            print(f"❌ Exception in get_candles for {symbol}: {e}")
-            return []
-
-
-
-# ✅ Wrapper for reuse
+# ✅ Helper wrapper function for easy login
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     user_id = user_id or os.getenv("PROSTOCKS_USER_ID")
     password = password or os.getenv("PROSTOCKS_PASSWORD")
