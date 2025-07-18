@@ -10,4 +10,5 @@ cryptography
 pyotp
 pyDes
 ta
+git+https://github.com/prostocks/NorenRestApiPy.git
 
