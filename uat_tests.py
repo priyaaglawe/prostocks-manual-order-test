@@ -2,9 +2,10 @@
 
 import requests
 import json
+import urllib.parse
 import time
 
-def run_uat_test(ps_api=None):  # ps_api not used here
+def run_uat_test(ps_api=None):
     log_msgs = []
 
     def log(msg):
@@ -14,17 +15,20 @@ def run_uat_test(ps_api=None):  # ps_api not used here
     jKey = "f85ea13ddac928a495f023afdfc4946bdb6dd4c369917e65bac1da8b3028705c"
     uid = "A0588"
     actid = "A0588"
+
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
         url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
-        jdata = {
+
+        # Properly construct the inner JSON (all values must be strings)
+        jdata_dict = {
             "uid": uid,
             "actid": actid,
             "exch": "NSE",
             "tsym": tsym,
-            "qty": qty,
-            "prc": prc,
+            "qty": str(qty),
+            "prc": str(prc),
             "prd": "C",
             "trantype": trantype,
             "prctyp": prctyp,
@@ -33,9 +37,18 @@ def run_uat_test(ps_api=None):  # ps_api not used here
             "remarks": remarks
         }
 
-        # Properly encode jData for application/x-www-form-urlencoded
-        payload = f"jData={json.dumps(jdata)}&jKey={jKey}"
-        response = requests.post(url, data=payload, headers=headers)
+        # Step 1: JSON-stringify jData
+        jdata_json = json.dumps(jdata_dict)
+
+        # Step 2: URL encode the stringified JSON
+        encoded_jdata = urllib.parse.quote(jdata_json)
+
+        # Step 3: Construct the final payload string
+        payload = f"jData={encoded_jdata}&jKey={jKey}"
+
+        # Step 4: Send as x-www-form-urlencoded
+        response = requests.post(url, headers=headers, data=payload)
+
         return response.json()
 
     log("🔁 Placing 2 test orders...")
@@ -57,5 +70,4 @@ def run_uat_test(ps_api=None):  # ps_api not used here
     log(f"Market Order 2: {trade2}")
 
     log("🔍 NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
-
     return log_msgs
