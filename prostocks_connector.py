@@ -4,7 +4,6 @@ import hashlib
 import requests
 import json
 import os
-from NorenRestApiPy.NorenApi import NorenApi
 
 class ProStocksAPI:
     def __init__(self, userid, password_plain, factor2, vc, api_key, imei, base_url, apkversion="1.0.0"):
