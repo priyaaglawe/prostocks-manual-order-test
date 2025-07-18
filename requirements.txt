@@ -1,0 +1,12 @@
+streamlit
+python-dotenv
+requests
+schedule
+yfinance
+pandas
+numpy
+websocket-client
+cryptography
+pyotp
+pyDes
+ta
