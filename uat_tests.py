@@ -34,7 +34,7 @@ def run_uat_test(ps_api=None):  # ps_api not used anymore
                 "remarks": remarks
             }
         }
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, data=json.dumps(payload), headers=headers)
         return response.json()
 
     log("🔁 Placing 2 test orders...")
