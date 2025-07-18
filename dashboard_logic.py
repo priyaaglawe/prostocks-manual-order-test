@@ -56,38 +56,6 @@ def load_settings():
         "auto_exit_time": time(15, 12)
     }
 
-def calculate_macd(df, fast_length=12, slow_length=26, signal_length=9, 
-                   src_col='Close', 
-                   ma_type_macd='EMA', 
-                   ma_type_signal='EMA'):
-    df = df.copy()
-    src = df[src_col]
-
-    def ma(series, length, method):
-        return series.ewm(span=length, adjust=False).mean() if method == 'EMA' else series.rolling(window=length).mean()
-
-    fast_ma = ma(src, fast_length, ma_type_macd)
-    slow_ma = ma(src, slow_length, ma_type_macd)
-    df['MACD'] = fast_ma - slow_ma
-    df['Signal'] = ma(df['MACD'], signal_length, ma_type_signal)
-    df['Histogram'] = df['MACD'] - df['Signal']
-
-    return df[['MACD', 'Signal', 'Histogram']]
-
-
-def calculate_heikin_ashi(df):
-    ha_df = df.copy()
-    ha_df['HA_Close'] = (df['Open'] + df['High'] + df['Low'] + df['Close']) / 4
-
-    ha_open = [(df['Open'].iloc[0] + df['Close'].iloc[0]) / 2]
-    for i in range(1, len(df)):
-        ha_open.append((ha_open[i - 1] + ha_df['HA_Close'].iloc[i - 1]) / 2)
-
-    ha_df['HA_Open'] = ha_open
-    ha_df['HA_High'] = ha_df[['High', 'HA_Open', 'HA_Close']].max(axis=1)
-    ha_df['HA_Low'] = ha_df[['Low', 'HA_Open', 'HA_Close']].min(axis=1)
-
-    return ha_df
 
 
 # === Place Test Order Function ===
