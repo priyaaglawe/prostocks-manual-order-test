@@ -71,39 +71,20 @@ class ProStocksAPI:
             return False, f"RequestException: {e}"
 
 
-    # ✅ Order API methods via Noren API
-    def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol, quantity,
-                    discloseqty, price_type, price, trigger_price, retention, remarks):
-        return self.api.place_order(
-            buy_or_sell=buy_or_sell,
-            product_type=product_type,
-            exchange=exchange,
-            tradingsymbol=tradingsymbol,
-            quantity=quantity,
-            discloseqty=discloseqty,
-            price_type=price_type,
-            price=price,
-            trigger_price=trigger_price,
-            retention=retention,
-            remarks=remarks
-        )
+        # Placeholder stubs if needed later
+    def place_order(self, *args, **kwargs):
+        raise NotImplementedError("place_order not used in manual mode.")
 
-    def modify_order(self, exchange, tradingsymbol, orderno,
-                     newquantity, newprice_type, newprice):
-        return self.api.modify_order(
-            exchange=exchange,
-            tradingsymbol=tradingsymbol,
-            orderno=orderno,
-            newquantity=newquantity,
-            newprice_type=newprice_type,
-            newprice=newprice
-        )
+    def modify_order(self, *args, **kwargs):
+        raise NotImplementedError("modify_order not used in manual mode.")
 
-    def cancel_order(self, orderno):
-        return self.api.cancel_order(orderno=orderno)
+    def cancel_order(self, *args, **kwargs):
+        raise NotImplementedError("cancel_order not used in manual mode.")
 
-    def get_trade_book(self):
-        return self.api.get_trade_book()
+    def get_trade_book(self, *args, **kwargs):
+        raise NotImplementedError("get_trade_book not used in manual mode.")
+    def get_jkey(self):
+        return self.session_token
 
 
 
