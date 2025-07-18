@@ -21,11 +21,6 @@ class ProStocksAPI:
             "Content-Type": "text/plain"
         }
 
-        # ✅ Add Noren API object for orders, etc.
-        self.api = NorenApi()
-        self.api.set_proxy(None)
-        self.api.set_url(host=self.base_url, websocket=None)
-
     def sha256(self, text):
         return hashlib.sha256(text.encode()).hexdigest()
 
@@ -34,6 +29,9 @@ class ProStocksAPI:
         pwd_hash = self.sha256(self.password_plain)
         appkey_raw = f"{self.userid}|{self.api_key}"
         appkey_hash = self.sha256(appkey_raw)
+
+        print("📎 App Key Raw:", appkey_raw)
+        print("🔐 Hashed App Key:", appkey_hash)
 
         payload = {
             "uid": self.userid,
@@ -55,6 +53,8 @@ class ProStocksAPI:
                 headers=self.headers,
                 timeout=10
             )
+            print("🔁 Response Code:", response.status_code)
+            print("📨 Response Body:", response.text)
 
             if response.status_code == 200:
                 data = response.json()
@@ -62,25 +62,14 @@ class ProStocksAPI:
                     self.session_token = data["susertoken"]
                     self.headers["Authorization"] = self.session_token
                     print("✅ Login Success!")
-
-                    # 🔐 Also login to Noren API object
-                    res = self.api.login(
-                        userid=self.userid,
-                        password=self.password_plain,
-                        twoFA=self.factor2,
-                        vendor_code=self.vc,
-                        api_secret=self.api_key,
-                        imei=self.imei
-                    )
-                    if res is None or res.get("stat") != "Ok":
-                        return False, "Login failed (Noren API)"
-                    return True, "Login successful"
+                    return True, self.session_token
                 else:
                     return False, data.get("emsg", "Unknown login error")
             else:
                 return False, f"HTTP {response.status_code}: {response.text}"
         except requests.exceptions.RequestException as e:
             return False, f"RequestException: {e}"
+
 
     # ✅ Order API methods via Noren API
     def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol, quantity,
