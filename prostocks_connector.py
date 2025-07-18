@@ -1,3 +1,4 @@
+import hashlib
 import requests
 import json
 import os
