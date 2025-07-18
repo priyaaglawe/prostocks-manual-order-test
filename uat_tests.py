@@ -15,25 +15,29 @@ def run_uat_test(ps_api=None):  # ps_api not used anymore
     actid = "A0588"
     headers = {'Content-Type': 'application/json'}
 
-    def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
-        payload = {
-            "jKey": jKey,
-            "jData": {
-                "uid": uid,
-                "actid": actid,
-                "exch": "NSE",
-                "tsym": tsym,
-                "qty": qty,
-                "prc": prc,
-                "prd": "C",
-                "trantype": trantype,
-                "prctyp": prctyp,
-                "ret": "DAY",
-                "ordersource": "WEB",
-                "remarks": remarks
-            }
-        }
+   def place_order(trantype, tsym, qty, prctyp, prc, remarks):
+    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+    jdata = {
+        "uid": uid,
+        "actid": actid,
+        "exch": "NSE",
+        "tsym": tsym,
+        "qty": qty,
+        "prc": prc,
+        "prd": "C",
+        "trantype": trantype,
+        "prctyp": prctyp,
+        "ret": "DAY",
+        "ordersource": "WEB",
+        "remarks": remarks
+    }
+    payload = {
+        "jData": json.dumps(jdata),
+        "jKey": jKey
+    }
+    response = requests.post(url, data=payload, headers=headers)
+    return response.json()
+
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         return response.json()
 
