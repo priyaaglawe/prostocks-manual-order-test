@@ -4,14 +4,13 @@ import requests
 import json
 import time
 
-def run_uat_test(ps_api=None):  # ps_api not used
+def run_uat_test(ps_api=None):  # ps_api not used here
     log_msgs = []
 
     def log(msg):
         log_msgs.append(msg)
         print(msg)
 
-    # Replace with your actual values
     jKey = "f85ea13ddac928a495f023afdfc4946bdb6dd4c369917e65bac1da8b3028705c"
     uid = "A0588"
     actid = "A0588"
@@ -33,10 +32,9 @@ def run_uat_test(ps_api=None):  # ps_api not used
             "ordersource": "WEB",
             "remarks": remarks
         }
-        payload = {
-            "jData": json.dumps(jdata),
-            "jKey": jKey
-        }
+
+        # Properly encode jData for application/x-www-form-urlencoded
+        payload = f"jData={json.dumps(jdata)}&jKey={jKey}"
         response = requests.post(url, data=payload, headers=headers)
         return response.json()
 
@@ -44,11 +42,9 @@ def run_uat_test(ps_api=None):  # ps_api not used
 
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
     log(f"Order 1: {order1}")
-    order_ids = [order1.get('norenordno')]
 
     order2 = place_order("S", "TATAMOTORS-EQ", 1, "LMT", 980.0, "uat_order_2")
     log(f"Order 2: {order2}")
-    order_ids.append(order2.get('norenordno'))
 
     time.sleep(2)
 
