@@ -18,6 +18,7 @@ def run_uat_test(ps_api=None):
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
         url = ps_api.url + "/placeorder" if ps_api else "https://staruat.prostocks.com/NorenWClientTP/placeorder"
+        print(f"🔗 Using endpoint: {url}")
         jdata_dict = {
             "uid": uid,
             "actid": actid,
