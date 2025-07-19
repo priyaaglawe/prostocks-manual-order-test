@@ -38,7 +38,7 @@ headers = {
 }
 
 # POST to UAT endpoint
-url = "https://uat-api.prostocks.com/NorenWClientTP/placeorder"
+url = "https://staruat.prostocks.com/NorenWClientTP/placeorder"
 response = requests.post(url, data=payload, headers=headers)
 
 # Output
