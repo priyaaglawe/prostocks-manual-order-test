@@ -71,46 +71,47 @@ class ProStocksAPI:
             return False, f"RequestException: {e}"
 
 
+
         # Placeholder stubs if needed later
-    def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
-                quantity, discloseqty, price_type, price=None, trigger_price=None,
-                retention='DAY', remarks=''):
+       def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
+                    quantity, discloseqty, price_type, price=None, trigger_price=None,
+                    retention='DAY', remarks=''):
 
-    url = f"{self.base_url}/PlaceOrder"
+        url = f"{self.base_url}/PlaceOrder"
 
-    order_data = {
-        "uid": self.userid,
-        "actid": self.userid,
-        "exch": exchange,
-        "tsym": tradingsymbol,
-        "qty": quantity,
-        "dscqty": discloseqty,
-        "prd": product_type,
-        "trantype": buy_or_sell,
-        "prctyp": price_type,
-        "ret": retention,
-        "ordersource": "API",  # or MOB/WEB
-        "remarks": remarks
-    }
+        order_data = {
+            "uid": self.userid,
+            "actid": self.userid,
+            "exch": exchange,
+            "tsym": tradingsymbol,
+            "qty": quantity,
+            "dscqty": discloseqty,
+            "prd": product_type,
+            "trantype": buy_or_sell,
+            "prctyp": price_type,
+            "ret": retention,
+            "ordersource": "API",  # or MOB/WEB
+            "remarks": remarks
+        }
 
-    # Optional fields
-    if price is not None:
-        order_data["prc"] = price
-    if trigger_price is not None:
-        order_data["trgprc"] = trigger_price
+        # Optional fields
+        if price is not None:
+            order_data["prc"] = price
+        if trigger_price is not None:
+            order_data["trgprc"] = trigger_price
 
-    payload = {
-        "jData": json.dumps(order_data, separators=(",", ":")),
-        "jKey": self.session_token
-    }
+        payload = {
+            "jData": json.dumps(order_data, separators=(",", ":")),
+            "jKey": self.session_token
+        }
 
-    try:
-        response = self.session.post(url, data=payload, headers=self.headers, timeout=10)
-        print("📨 Place Order Response:", response.text)
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print("❌ Place order exception:", e)
-        return {"stat": "Not_Ok", "emsg": str(e)}
+        try:
+            response = self.session.post(url, data=payload, headers=self.headers, timeout=10)
+            print("📨 Place Order Response:", response.text)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print("❌ Place order exception:", e)
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
 
 
