@@ -20,33 +20,38 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
 
-        jdata_dict = {
-            "uid": uid,
-            "actid": actid,
-            "exch": "NSE",
-            "tsym": tsym,
-            "qty": str(qty),
-            "prc": str(prc),
-            "prd": "C",
-            "trantype": trantype,
-            "prctyp": prctyp,
-            "ret": "DAY",
-            "ordersource": "WEB",
-            "remarks": remarks
-        }
+    jdata_dict = {
+        "uid": uid,
+        "actid": actid,
+        "exch": "NSE",
+        "tsym": tsym,
+        "qty": str(qty),
+        "prc": str(prc),
+        "prd": "C",
+        "trantype": trantype,
+        "prctyp": prctyp,
+        "ret": "DAY",
+        "ordersource": "API",  # Use "API" instead of "WEB"
+        "remarks": remarks
+    }
 
-        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
-        encoded_jdata = urllib.parse.quote(jdata_json, safe='')
+    jdata_json = json.dumps(jdata_dict, separators=(',', ':'))  # no spaces
+    payload = {
+        "jData": jdata_json,
+        "jKey": jKey
+    }
 
-        payload = f"jData={encoded_jdata}&jKey={jKey}"
-        response = requests.post(url, headers=headers, data=payload)
+    print("jData sent:", jdata_json)  # Debug line
 
-        try:
-            return response.json()
-        except Exception as e:
-            return {"stat": "Not_Ok", "emsg": str(e)}
+    response = requests.post(url, headers=headers, data=payload)
+
+    try:
+        return response.json()
+    except Exception as e:
+        return {"stat": "Not_Ok", "emsg": str(e)}
+
 
     log("🔁 Placing 2 test orders...")
 
