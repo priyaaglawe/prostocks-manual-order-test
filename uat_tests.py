@@ -19,40 +19,38 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
 
-        # Properly construct the inner JSON (all values must be strings)
-        jdata_dict = {
-            "uid": uid,
-            "actid": actid,
-            "exch": "NSE",
-            "tsym": tsym,
-            "qty": str(qty),
-            "prc": str(prc),
-            "prd": "C",
-            "trantype": trantype,
-            "prctyp": prctyp,
-            "ret": "DAY",
-            "ordersource": "WEB",
-            "remarks": remarks
-        }
+    jdata_dict = {
+        "uid": uid,
+        "actid": actid,
+        "exch": "NSE",
+        "tsym": tsym,
+        "qty": str(qty),
+        "prc": str(prc),
+        "prd": "C",
+        "trantype": trantype,
+        "prctyp": prctyp,
+        "ret": "DAY",
+        "ordersource": "WEB",
+        "remarks": remarks
+    }
 
-        # Step 1: JSON-stringify jData
-        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
+    jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
 
-        # Step 2: URL encode the stringified JSON
-        encoded_jdata = urllib.parse.quote(jdata_json, safe='')
+    # ✅ Let requests do form encoding
+    payload = {
+        "jData": jdata_json,
+        "jKey": jKey
+    }
 
-        # Step 3: Construct the final payload string
-        payload = f"jData={encoded_jdata}&jKey={jKey}"
+    response = requests.post(url, headers=headers, data=payload)
 
-        # Step 4: Send as x-www-form-urlencoded
-        response = requests.post(url, headers=headers, data=payload)
+    try:
+        return response.json()
+    except Exception as e:
+        return {"stat": "Not_Ok", "emsg": str(e)}
 
-        try:
-            return response.json()
-        except Exception as e:
-            return {"stat": "Not_Ok", "emsg": str(e)}
 
     log("\U0001F501 Placing 2 test orders...")
 
