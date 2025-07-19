@@ -56,9 +56,10 @@ if "ps_api" in st.session_state:
 if "ps_api" in st.session_state:
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
-    logs = run_uat_test()  
-    st.success("✅ UAT Test Completed")
-    st.text_area("📋 Test Log", "\n".join(logs), height=400)
+        logs = run_uat_test()  
+        st.success("✅ UAT Test Completed")
+        st.text_area("📋 Test Log", "\n".join(logs), height=400)
+
 
 
 
