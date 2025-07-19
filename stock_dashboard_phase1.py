@@ -61,6 +61,86 @@ if "ps_api" in st.session_state:
         st.text_area("📋 Test Log", "\n".join(logs), height=400)
 
 
+    st.markdown("### 📝 Manual Order Placement")
+
+    with st.form("manual_order_form"):
+        tsym = st.text_input("Trading Symbol (e.g. SBIN-EQ)")
+        qty = st.number_input("Quantity", min_value=1, step=1)
+        price_type = st.selectbox("Order Type", ["LMT", "MKT"])
+        price = st.number_input("Price (0 for MKT)", min_value=0.0, step=0.05)
+        trantype = st.selectbox("Buy or Sell", ["B", "S"])
+        remarks = st.text_input("Remarks", value="manual_order")
+
+        submit_order = st.form_submit_button("📤 Place Order")
+
+        if submit_order:
+            order = st.session_state["ps_api"].place_order(
+                buy_or_sell=trantype,
+                product_type="C",
+                exchange="NSE",
+                tradingsymbol=tsym,
+                quantity=qty,
+                discloseqty=0,
+                price_type=price_type,
+                price=price if price_type == "LMT" else None,
+                remarks=remarks
+            )
+            st.write("📋 Order Response:", order)
+    st.markdown("### ❌ Cancel / 🛠 Modify Orders")
+
+    if st.button("📘 Refresh Order Book"):
+        orders = st.session_state["ps_api"].order_book()
+        st.session_state["order_book"] = orders.get("data", [])
+
+    if "order_book" in st.session_state:
+        for order in st.session_state["order_book"]:
+            col1, col2, col3 = st.columns([4, 2, 2])
+            with col1:
+                st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
+            with col2:
+                if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
+                    cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                    st.write(cancel_resp)
+            with col3:
+                if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
+                    st.session_state["modify_form"] = order
+                    st.rerun()
+    if "modify_form" in st.session_state:
+        order = st.session_state["modify_form"]
+        st.markdown("### 🛠 Modify Order Form")
+
+        with st.form("modify_order_form"):
+            tsym = st.text_input("Symbol", value=order["tsym"])
+            qty = st.number_input("Quantity", value=int(order["qty"]))
+            price_type = st.selectbox("Order Type", ["LMT", "MKT"], index=0 if order["prctyp"] == "LMT" else 1)
+            price = st.number_input("Price", value=float(order.get("prc", 0)))
+            trantype = st.selectbox("Buy/Sell", ["B", "S"], index=0 if order["trantype"] == "B" else 1)
+
+            submit_mod = st.form_submit_button("🔁 Submit Modification")
+            if submit_mod:
+                # Cancel old order
+                st.session_state["ps_api"].cancel_order(order["norenordno"])
+                # Place modified
+                new_order = st.session_state["ps_api"].place_order(
+                    buy_or_sell=trantype,
+                    product_type="C",
+                    exchange="NSE",
+                    tradingsymbol=tsym,
+                    quantity=qty,
+                    discloseqty=0,
+                    price_type=price_type,
+                    price=price if price_type == "LMT" else None,
+                    remarks="modified_order"
+                )
+                st.success("✅ Order Modified")
+                st.write("Response:", new_order)
+                del st.session_state["modify_form"]
+    st.markdown("### 📥 Trade Book")
+
+    if st.button("📥 View Trade Book"):
+        trades = st.session_state["ps_api"].trade_book()
+        df = pd.DataFrame(trades.get("data", []))
+        st.dataframe(df if not df.empty else pd.DataFrame([{"info": "No trades yet"}]))
 
 
 
