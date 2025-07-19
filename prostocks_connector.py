@@ -111,6 +111,35 @@ class ProStocksAPI:
         except requests.exceptions.RequestException as e:
             print("❌ Place order exception:", e)
             return {"stat": "Not_Ok", "emsg": str(e)}
+    def order_book(self):
+        url = f"{self.base_url}/OrderBook"
+        payload = f"jData={{\"uid\":\"{self.userid}\"}}&jKey={self.session_token}"
+        return self._post(url, payload)
+
+    def trade_book(self):
+        url = f"{self.base_url}/TradeBook"
+        payload = f"jData={{\"uid\":\"{self.userid}\"}}&jKey={self.session_token}"
+        return self._post(url, payload)
+
+    def cancel_order(self, order_number):
+        url = f"{self.base_url}/CancelOrder"
+        payload = {
+            "uid": self.userid,
+            "norenordno": order_number
+        }
+        jdata = json.dumps(payload, separators=(",", ":"))
+        data = f"jData={jdata}&jKey={self.session_token}"
+        return self._post(url, data)
+
+    def _post(self, url, data):
+        try:
+            response = self.session.post(url, headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": self.session_token
+            }, data=data)
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
 
 # ✅ Helper wrapper function for easy login
