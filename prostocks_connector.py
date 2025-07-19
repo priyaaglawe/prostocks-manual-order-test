@@ -100,7 +100,7 @@ class ProStocksAPI:
         order_data["trgprc"] = trigger_price
 
     payload = {
-        "jData": json.dumps(order_data, separators=(",", ":")),  # 🔧 Must be string
+        "jData": json.dumps(order_data, separators=(",", ":")),
         "jKey": self.session_token
     }
 
