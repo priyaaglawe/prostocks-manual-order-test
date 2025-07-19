@@ -114,7 +114,6 @@ class ProStocksAPI:
 
 
 
-
 # ✅ Helper wrapper function for easy login
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     user_id = user_id or os.getenv("PROSTOCKS_USER_ID")
