@@ -38,10 +38,10 @@ def run_uat_test(ps_api=None):
         }
 
         # Step 1: JSON-stringify jData
-        jdata_json = json.dumps(jdata_dict)
+        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
 
         # Step 2: URL encode the stringified JSON
-        encoded_jdata = urllib.parse.quote(jdata_json)
+        encoded_jdata = urllib.parse.quote(jdata_json, safe='')
 
         # Step 3: Construct the final payload string
         payload = f"jData={encoded_jdata}&jKey={jKey}"
@@ -49,9 +49,12 @@ def run_uat_test(ps_api=None):
         # Step 4: Send as x-www-form-urlencoded
         response = requests.post(url, headers=headers, data=payload)
 
-        return response.json()
+        try:
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
-    log("🔁 Placing 2 test orders...")
+    log("\U0001F501 Placing 2 test orders...")
 
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
     log(f"Order 1: {order1}")
@@ -61,7 +64,7 @@ def run_uat_test(ps_api=None):
 
     time.sleep(2)
 
-    log("🟢 Placing 2 market orders for trade confirmation...")
+    log("\U0001F7E2 Placing 2 market orders for trade confirmation...")
 
     trade1 = place_order("B", "SBIN-EQ", 1, "MKT", 0.0, "uat_trade_1")
     log(f"Market Order 1: {trade1}")
@@ -69,5 +72,5 @@ def run_uat_test(ps_api=None):
     trade2 = place_order("S", "TATAMOTORS-EQ", 1, "MKT", 0.0, "uat_trade_2")
     log(f"Market Order 2: {trade2}")
 
-    log("🔍 NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
+    log("\U0001F50D NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
     return log_msgs
