@@ -2,7 +2,6 @@
 
 import requests
 import json
-import urllib.parse
 import time
 
 def run_uat_test(ps_api=None):
@@ -19,40 +18,39 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
 
-    jdata_dict = {
-        "uid": uid,
-        "actid": actid,
-        "exch": "NSE",
-        "tsym": tsym,
-        "qty": str(qty),
-        "prc": str(prc),
-        "prd": "C",
-        "trantype": trantype,
-        "prctyp": prctyp,
-        "ret": "DAY",
-        "ordersource": "WEB",
-        "remarks": remarks
-    }
+        jdata_dict = {
+            "uid": uid,
+            "actid": actid,
+            "exch": "NSE",
+            "tsym": tsym,
+            "qty": str(qty),
+            "prc": str(prc),
+            "prd": "C",
+            "trantype": trantype,
+            "prctyp": prctyp,
+            "ret": "DAY",
+            "ordersource": "WEB",
+            "remarks": remarks
+        }
 
-    jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
+        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
 
-    # ✅ Let requests do form encoding
-    payload = {
-        "jData": jdata_json,
-        "jKey": jKey
-    }
+        payload = {
+            "jData": jdata_json,
+            "jKey": jKey
+        }
 
-    response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, data=payload)
 
-    try:
-        return response.json()
-    except Exception as e:
-        return {"stat": "Not_Ok", "emsg": str(e)}
+        try:
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
-
-    log("\U0001F501 Placing 2 test orders...")
+    # Run tests
+    log("🔁 Placing 2 test orders...")
 
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
     log(f"Order 1: {order1}")
@@ -62,7 +60,7 @@ def run_uat_test(ps_api=None):
 
     time.sleep(2)
 
-    log("\U0001F7E2 Placing 2 market orders for trade confirmation...")
+    log("🟢 Placing 2 market orders for trade confirmation...")
 
     trade1 = place_order("B", "SBIN-EQ", 1, "MKT", 0.0, "uat_trade_1")
     log(f"Market Order 1: {trade1}")
@@ -70,5 +68,5 @@ def run_uat_test(ps_api=None):
     trade2 = place_order("S", "TATAMOTORS-EQ", 1, "MKT", 0.0, "uat_trade_2")
     log(f"Market Order 2: {trade2}")
 
-    log("\U0001F50D NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
+    log("🔍 NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
     return log_msgs
