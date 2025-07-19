@@ -41,11 +41,15 @@ def run_uat_test(ps_api=None):
         print("jData sent:", jdata_json)
         response = requests.post(url, headers=headers, data=payload)
 
+        print("=== Debug: Raw HTTP Response ===")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Text: {response.text}")
+
         try:
             return response.json()
         except Exception as e:
+            print(f"❌ Failed to parse JSON: {e}")
             return {"stat": "Not_Ok", "emsg": str(e)}
-
     # Run test orders
     log("🔁 Placing 2 test orders...")
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
