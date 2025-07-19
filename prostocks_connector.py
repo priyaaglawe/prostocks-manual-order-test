@@ -71,43 +71,47 @@ class ProStocksAPI:
             return False, f"RequestException: {e}"
 
     def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
-                    quantity, discloseqty, price_type, price=None, trigger_price=None,
-                    retention='DAY', remarks=''):
+                quantity, discloseqty, price_type, price=None, trigger_price=None,
+                retention='DAY', remarks=''):
 
-        url = f"{self.base_url}/PlaceOrder"
+    url = f"{self.base_url}/PlaceOrder"
 
-        order_data = {
-            "uid": self.userid,
-            "actid": self.userid,
-            "exch": exchange,
-            "tsym": tradingsymbol,
-            "qty": quantity,
-            "dscqty": discloseqty,
-            "prd": product_type,
-            "trantype": buy_or_sell,
-            "prctyp": price_type,
-            "ret": retention,
-            "ordersource": "API",
-            "remarks": remarks
-        }
+    # ✅ Construct the order JSON
+    order_data = {
+        "uid": self.userid,
+        "actid": self.userid,
+        "exch": exchange,
+        "tsym": tradingsymbol,
+        "qty": str(quantity),
+        "dscqty": str(discloseqty),
+        "prd": product_type,
+        "trantype": buy_or_sell,
+        "prctyp": price_type,
+        "ret": retention,
+        "ordersource": "API",
+        "remarks": remarks
+    }
 
-        if price is not None:
-            order_data["prc"] = price
-        if trigger_price is not None:
-            order_data["trgprc"] = trigger_price
+    if price is not None:
+        order_data["prc"] = str(price)
+    if trigger_price is not None:
+        order_data["trgprc"] = str(trigger_price)
 
-        payload = {
-            "jData": json.dumps(order_data, separators=(",", ":")),
-            "jKey": self.session_token
-        }
+    # ✅ Convert to a form-encoded string
+    jdata_str = json.dumps(order_data, separators=(",", ":"))
+    payload = f"jData={jdata_str}&jKey={self.session_token}"
 
-        try:
-            response = self.session.post(url, data=payload, headers=self.headers, timeout=10)
-            print("📨 Place Order Response:", response.text)
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print("❌ Place order exception:", e)
-            return {"stat": "Not_Ok", "emsg": str(e)}
+    # ✅ Update header to correct content type
+    self.headers["Content-Type"] = "application/x-www-form-urlencoded"
+
+    try:
+        response = self.session.post(url, data=payload, headers=self.headers, timeout=10)
+        print("📨 Place Order Response:", response.text)
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print("❌ Place order exception:", e)
+        return {"stat": "Not_Ok", "emsg": str(e)}
+
 
 
 
