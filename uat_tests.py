@@ -4,6 +4,9 @@ import requests
 import json
 import time
 
+# ✅ Define the correct UAT base URL here
+UAT_BASE_URL = "https://starapiuat.prostocks.com/NorenWClientTP"
+
 def run_uat_test(ps_api=None):
     log_msgs = []
 
@@ -17,8 +20,10 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = ps_api.url + "/placeorder" if ps_api else "https://staruat.prostocks.com/NorenWClientTP/placeorder"
-        print(f"🔗 Using endpoint: {url}")
+        # ✅ Use correct UAT URL
+        url = ps_api.url + "/placeorder" if ps_api else UAT_BASE_URL + "/placeorder"
+        print(f"🔗 Using endpoint: {url}")  # 🔍 Confirm endpoint
+
         jdata_dict = {
             "uid": uid,
             "actid": actid,
@@ -33,6 +38,7 @@ def run_uat_test(ps_api=None):
             "ordersource": "API",
             "remarks": remarks
         }
+
         jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
         payload = {
             "jData": jdata_json,
@@ -51,6 +57,7 @@ def run_uat_test(ps_api=None):
         except Exception as e:
             print(f"❌ Failed to parse JSON: {e}")
             return {"stat": "Not_Ok", "emsg": str(e)}
+
     # Run test orders
     log("🔁 Placing 2 test orders...")
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
@@ -70,3 +77,4 @@ def run_uat_test(ps_api=None):
 
     log("🔍 NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
     return log_msgs
+
