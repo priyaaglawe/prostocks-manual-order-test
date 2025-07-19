@@ -3,6 +3,7 @@
 import requests
 import json
 import time
+import urllib.parse
 
 def run_uat_test(ps_api=None):
     log_msgs = []
@@ -17,37 +18,35 @@ def run_uat_test(ps_api=None):
 
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+   def place_order(trantype, tsym, qty, prctyp, prc, remarks):
+    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
 
-        jdata_dict = {
-            "uid": uid,
-            "actid": actid,
-            "exch": "NSE",
-            "tsym": tsym,
-            "qty": str(qty),
-            "prc": str(prc),
-            "prd": "C",
-            "trantype": trantype,
-            "prctyp": prctyp,
-            "ret": "DAY",
-            "ordersource": "WEB",
-            "remarks": remarks
-        }
+    jdata_dict = {
+        "uid": uid,
+        "actid": actid,
+        "exch": "NSE",
+        "tsym": tsym,
+        "qty": str(qty),
+        "prc": str(prc),
+        "prd": "C",
+        "trantype": trantype,
+        "prctyp": prctyp,
+        "ret": "DAY",
+        "ordersource": "WEB",
+        "remarks": remarks
+    }
 
-        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
+    jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
+    encoded_jdata = urllib.parse.quote(jdata_json, safe='')
 
-        payload = {
-            "jData": jdata_json,
-            "jKey": jKey
-        }
+    payload = f"jData={encoded_jdata}&jKey={jKey}"
 
-        response = requests.post(url, headers=headers, data=payload)
+    response = requests.post(url, headers=headers, data=payload)
 
-        try:
-            return response.json()
-        except Exception as e:
-            return {"stat": "Not_Ok", "emsg": str(e)}
+    try:
+        return response.json()
+    except Exception as e:
+        return {"stat": "Not_Ok", "emsg": str(e)}
 
     # Run tests
     log("🔁 Placing 2 test orders...")
