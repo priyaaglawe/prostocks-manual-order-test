@@ -17,7 +17,7 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        url = "https://staruat.prostocks.com/NorenWClientTP/placeorder"
+        url = ps_api.url + "/placeorder" if ps_api else "https://staruat.prostocks.com/NorenWClientTP/placeorder"
         jdata_dict = {
             "uid": uid,
             "actid": actid,
