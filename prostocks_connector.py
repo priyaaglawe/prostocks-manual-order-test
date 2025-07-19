@@ -72,19 +72,46 @@ class ProStocksAPI:
 
 
         # Placeholder stubs if needed later
-    def place_order(self, *args, **kwargs):
-        raise NotImplementedError("place_order not used in manual mode.")
+    def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
+                quantity, discloseqty, price_type, price=None, trigger_price=None,
+                retention='DAY', remarks=''):
 
-    def modify_order(self, *args, **kwargs):
-        raise NotImplementedError("modify_order not used in manual mode.")
+    url = f"{self.base_url}/PlaceOrder"
 
-    def cancel_order(self, *args, **kwargs):
-        raise NotImplementedError("cancel_order not used in manual mode.")
+    order_data = {
+        "uid": self.userid,
+        "actid": self.userid,
+        "exch": exchange,
+        "tsym": tradingsymbol,
+        "qty": quantity,
+        "dscqty": discloseqty,
+        "prd": product_type,
+        "trantype": buy_or_sell,
+        "prctyp": price_type,
+        "ret": retention,
+        "ordersource": "API",  # or MOB/WEB
+        "remarks": remarks
+    }
 
-    def get_trade_book(self, *args, **kwargs):
-        raise NotImplementedError("get_trade_book not used in manual mode.")
-    def get_jkey(self):
-        return self.session_token
+    # Optional fields
+    if price is not None:
+        order_data["prc"] = price
+    if trigger_price is not None:
+        order_data["trgprc"] = trigger_price
+
+    payload = {
+        "jData": json.dumps(order_data, separators=(",", ":")),  # 🔧 Must be string
+        "jKey": self.session_token
+    }
+
+    try:
+        response = self.session.post(url, data=payload, headers=self.headers, timeout=10)
+        print("📨 Place Order Response:", response.text)
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print("❌ Place order exception:", e)
+        return {"stat": "Not_Ok", "emsg": str(e)}
+
 
 
 
