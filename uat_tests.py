@@ -1,6 +1,5 @@
 
 # uat_tests.py
-
 import requests
 import json
 import urllib.parse
@@ -20,38 +19,37 @@ def run_uat_test(ps_api=None):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-    url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
+        url = "https://staruat.prostocks.com/NorenWClientTP/PlaceOrder"
 
-    jdata_dict = {
-        "uid": uid,
-        "actid": actid,
-        "exch": "NSE",
-        "tsym": tsym,
-        "qty": str(qty),
-        "prc": str(prc),
-        "prd": "C",
-        "trantype": trantype,
-        "prctyp": prctyp,
-        "ret": "DAY",
-        "ordersource": "API",  # Use "API" instead of "WEB"
-        "remarks": remarks
-    }
+        jdata_dict = {
+            "uid": uid,
+            "actid": actid,
+            "exch": "NSE",
+            "tsym": tsym,
+            "qty": str(qty),
+            "prc": str(prc),
+            "prd": "C",
+            "trantype": trantype,
+            "prctyp": prctyp,
+            "ret": "DAY",
+            "ordersource": "API",
+            "remarks": remarks
+        }
 
-    jdata_json = json.dumps(jdata_dict, separators=(',', ':'))  # no spaces
-    payload = {
-        "jData": jdata_json,
-        "jKey": jKey
-    }
+        jdata_json = json.dumps(jdata_dict, separators=(',', ':'))
+        payload = {
+            "jData": jdata_json,
+            "jKey": jKey
+        }
 
-    print("jData sent:", jdata_json)  # Debug line
+        print("jData sent:", jdata_json)  # Debug line
 
-    response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, data=payload)
 
-    try:
-        return response.json()
-    except Exception as e:
-        return {"stat": "Not_Ok", "emsg": str(e)}
-
+        try:
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
     log("🔁 Placing 2 test orders...")
 
