@@ -7,7 +7,6 @@ from dashboard_logic import load_settings, save_settings, load_credentials
 from datetime import datetime, time
 from uat_tests import run_uat_test
 
-
 # === Load and Apply Settings (only once)
 if "settings_loaded" not in st.session_state:
     st.session_state.update(load_settings())
@@ -15,7 +14,6 @@ if "settings_loaded" not in st.session_state:
 
 # === Load Credentials from .env
 creds = load_credentials()
-
 
 # 🔐 Sidebar Login
 with st.sidebar:
@@ -65,12 +63,11 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
 if "ps_api" in st.session_state:
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
-        logs = run_uat_test(ps_api=st.session_state["ps_api"]) 
+        logs = run_uat_test(ps_api=st.session_state["ps_api"])
         st.success("✅ UAT Test Completed")
         st.text_area("📋 Test Log", "\n".join(logs), height=400)
 
-
-        st.markdown("### 📝 Manual Order Placement")
+    st.markdown("### 📝 Manual Order Placement")
 
     # ✅ Predefined 10 symbols
     symbols = [
@@ -88,7 +85,7 @@ if "ps_api" in st.session_state:
 
         submit_order = st.form_submit_button("📤 Place Order")
 
-                if submit_order:
+        if submit_order:
             order = st.session_state["ps_api"].place_order(
                 buy_or_sell=trantype,
                 product_type="C",
@@ -131,6 +128,7 @@ if "ps_api" in st.session_state:
                 if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
                     st.session_state["modify_form"] = order
                     st.rerun()
+
     if "modify_form" in st.session_state:
         order = st.session_state["modify_form"]
         st.markdown("### 🛠 Modify Order Form")
@@ -161,6 +159,7 @@ if "ps_api" in st.session_state:
                 st.success("✅ Order Modified")
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
+
     st.markdown("### 📥 Trade Book")
 
     if st.button("📥 View Trade Book"):
@@ -168,9 +167,6 @@ if "ps_api" in st.session_state:
         df = pd.DataFrame(trades.get("data", []))
         st.dataframe(df if not df.empty else pd.DataFrame([{"info": "No trades yet"}]))
 
-
-
-        
             
 
 
