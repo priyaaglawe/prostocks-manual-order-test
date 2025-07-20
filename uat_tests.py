@@ -22,7 +22,7 @@ def run_uat_test(ps_api=None):
     jKey = ps_api.session_token         # ✅ No more hardcoded jKey
     uid = ps_api.uid                    # ✅ Uses session user ID
     actid = ps_api.uid                 # ✅ Usually same as UID
-    url_base = ps_api.url              # ✅ UAT base URL
+    url_base = ps_api.base_url              # ✅ UAT base URL
 
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
