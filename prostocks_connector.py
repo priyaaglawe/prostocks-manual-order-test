@@ -61,10 +61,11 @@ class ProStocksAPI:
             if response.status_code == 200:
                 data = response.json()
                 if data.get("stat") == "Ok":
-                    self.session_token = data["susertoken"]
-                    self.headers["Authorization"] = self.session_token
-                    print("✅ Login Success!")
-                    return True, self.session_token
+    self.session_token = data["susertoken"]
+    self.headers["Authorization"] = self.session_token
+    print("✅ Login Success!")
+    print("🔑 Session Token set:", self.session_token)   # 👈 ADD THIS LINE
+    return True, self.session_token
                 else:
                     return False, data.get("emsg", "Unknown login error")
             else:
