@@ -89,24 +89,28 @@ if "ps_api" in st.session_state:
         submit_order = st.form_submit_button("📤 Place Order")
 
         if submit_order:
-            # 🔁 Refresh jKey in session_state if changed
-if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
-    st.session_state["jKey"] = st.session_state["ps_api"].session_token(
-                buy_or_sell=trantype,
-                product_type="C",
-                exchange="NSE",
-                tradingsymbol=tsym,
-                quantity=qty,
-                discloseqty=0,
-                price_type=price_type,
-                price=price if price_type == "LMT" else None,
-                remarks=remarks
-            )
-            st.write("📋 Order Response:", order)
-if "Not_Ok" in order.get("stat", ""):
-    st.error(f"❌ Order failed: {order.get('emsg')}")
-    if "Session Expired" in order.get("emsg", ""):
-        st.warning("🔁 Try refreshing jKey manually or re-login.")
+    order = st.session_state["ps_api"].place_order(
+        buy_or_sell=trantype,
+        product_type="C",
+        exchange="NSE",
+        tradingsymbol=tsym,
+        quantity=qty,
+        discloseqty=0,
+        price_type=price_type,
+        price=price if price_type == "LMT" else None,
+        remarks=remarks
+    )
+
+    # 🔁 Refresh jKey in session_state if changed
+    if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
+        st.session_state["jKey"] = st.session_state["ps_api"].session_token
+
+    st.write("📋 Order Response:", order)
+
+    if "Not_Ok" in order.get("stat", ""):
+        st.error(f"❌ Order failed: {order.get('emsg')}")
+        if "Session Expired" in order.get("emsg", ""):
+            st.warning("🔁 Try refreshing jKey manually or re-login.")
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
