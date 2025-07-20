@@ -54,6 +54,14 @@ if "ps_api" in st.session_state:
         st.success("✅ Logged out successfully")
         st.rerun()
 
+# 🔑 Manual jKey update UI
+with st.expander("🔑 Advanced: Update jKey Manually"):
+    new_jkey = st.text_input("Paste New jKey", value=st.session_state.get("jKey", ""))
+    if st.button("💾 Update jKey"):
+        st.session_state["jKey"] = new_jkey
+        st.session_state["ps_api"].session_token = new_jkey
+        st.success("✅ jKey updated in session.")
+
 if "ps_api" in st.session_state:
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
@@ -81,7 +89,9 @@ if "ps_api" in st.session_state:
         submit_order = st.form_submit_button("📤 Place Order")
 
         if submit_order:
-            order = st.session_state["ps_api"].place_order(
+            # 🔁 Refresh jKey in session_state if changed
+if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
+    st.session_state["jKey"] = st.session_state["ps_api"].session_token(
                 buy_or_sell=trantype,
                 product_type="C",
                 exchange="NSE",
@@ -93,6 +103,11 @@ if "ps_api" in st.session_state:
                 remarks=remarks
             )
             st.write("📋 Order Response:", order)
+if "Not_Ok" in order.get("stat", ""):
+    st.error(f"❌ Order failed: {order.get('emsg')}")
+    if "Session Expired" in order.get("emsg", ""):
+        st.warning("🔁 Try refreshing jKey manually or re-login.")
+
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
     if st.button("📘 Refresh Order Book"):
