@@ -26,55 +26,52 @@ class ProStocksAPI:
     def sha256(self, text):
         return hashlib.sha256(text.encode()).hexdigest()
 
-    def login(self):
-        url = f"{self.base_url}/QuickAuth"
-        pwd_hash = self.sha256(self.password_plain)
-        appkey_raw = f"{self.userid}|{self.api_key}"
-        appkey_hash = self.sha256(appkey_raw)
+   def login(self):
+    url = f"{self.base_url}/QuickAuth"
+    pwd_hash = self.sha256(self.password_plain)
+    appkey_raw = f"{self.userid}|{self.api_key}"
+    appkey_hash = self.sha256(appkey_raw)
 
-        print("📎 App Key Raw:", appkey_raw)
-        print("🔐 Hashed App Key:", appkey_hash)
+    print("📎 App Key Raw:", appkey_raw)
+    print("🔐 Hashed App Key:", appkey_hash)
 
-        payload = {
-            "uid": self.userid,
-            "pwd": pwd_hash,
-            "factor2": self.factor2,
-            "vc": self.vc,
-            "appkey": appkey_hash,
-            "imei": self.imei,
-            "apkversion": self.apkversion,
-            "source": "API"
-        }
+    payload = {
+        "uid": self.userid,
+        "pwd": pwd_hash,
+        "factor2": self.factor2,
+        "vc": self.vc,
+        "appkey": appkey_hash,
+        "imei": self.imei,
+        "apkversion": self.apkversion,
+        "source": "API"
+    }
 
-        try:
-            jdata = json.dumps(payload, separators=(",", ":"))
-            raw_data = f"jData={jdata}"
-            response = self.session.post(
-                url,
-                data=raw_data,
-                headers=self.headers,
-                timeout=10
-            )
-            print("🔁 Response Code:", response.status_code)
-            print("📨 Response Body:", response.text)
+    try:
+        jdata = json.dumps(payload, separators=(",", ":"))
+        raw_data = f"jData={jdata}"
+        response = self.session.post(
+            url,
+            data=raw_data,
+            headers=self.headers,
+            timeout=10
+        )
+        print("🔁 Response Code:", response.status_code)
+        print("📨 Response Body:", response.text)
 
-            if response.status_code == 200:
-                data = response.json()
-               if data.get("stat") == "Ok":
-    self.session_token = data["susertoken"]
-    self.headers["Authorization"] = self.session_token
-    print("✅ Login Success!")
-    print("🔑 Session Token set:", self.session_token)
-    return True, self.session_token
-else:
-    return False, data.get("emsg", "Unknown login error")
-
-else:
-    return False, data.get("emsg", "Unknown login error")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("stat") == "Ok":
+                self.session_token = data["susertoken"]
+                self.headers["Authorization"] = self.session_token
+                print("✅ Login Success!")
+                print("🔑 Session Token set:", self.session_token)
+                return True, self.session_token
             else:
-                return False, f"HTTP {response.status_code}: {response.text}"
-        except requests.exceptions.RequestException as e:
-            return False, f"RequestException: {e}"
+                return False, data.get("emsg", "Unknown login error")
+        else:
+            return False, f"HTTP {response.status_code}: {response.text}"
+    except requests.exceptions.RequestException as e:
+        return False, f"RequestException: {e}"
 
     def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
                     quantity, discloseqty, price_type, price=None, trigger_price=None,
