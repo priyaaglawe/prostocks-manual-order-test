@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-# ✅ Define the correct UAT base URL here
+# ✅ UAT Endpoint
 UAT_BASE_URL = "https://starapiuat.prostocks.com/NorenWClientTP"
 
 def run_uat_test(ps_api=None):
@@ -14,15 +14,21 @@ def run_uat_test(ps_api=None):
         log_msgs.append(msg)
         print(msg)
 
-    jKey = "f85ea13ddac928a495f023afdfc4946bdb6dd4c369917e65bac1da8b3028705c"
-    uid = "A0588"
-    actid = "A0588"
+    # ✅ Dynamic session info
+    if ps_api is None:
+        log("❌ No ps_api provided — cannot run test.")
+        return log_msgs
+
+    jKey = ps_api.session_token         # ✅ No more hardcoded jKey
+    uid = ps_api.uid                    # ✅ Uses session user ID
+    actid = ps_api.uid                 # ✅ Usually same as UID
+    url_base = ps_api.url              # ✅ UAT base URL
+
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def place_order(trantype, tsym, qty, prctyp, prc, remarks):
-        # ✅ Use correct UAT URL
-        url = ps_api.url + "/placeorder" if ps_api else UAT_BASE_URL + "/placeorder"
-        print(f"🔗 Using endpoint: {url}")  # 🔍 Confirm endpoint
+        url = url_base + "/placeorder"
+        print(f"🔗 Using endpoint: {url}")  # Confirm endpoint
 
         jdata_dict = {
             "uid": uid,
