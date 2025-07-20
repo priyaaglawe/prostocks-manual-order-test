@@ -38,6 +38,7 @@ with st.sidebar:
                 success, msg = ps_api.login()
                 if success:
                     st.session_state["ps_api"] = ps_api
+                    st.session_state["jKey"] = ps_api.session_token
                     st.success("✅ Login Successful")
                     st.rerun()
                 else:
