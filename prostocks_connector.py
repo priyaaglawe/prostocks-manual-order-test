@@ -8,6 +8,8 @@ import os
 class ProStocksAPI:
     def __init__(self, userid, password_plain, factor2, vc, api_key, imei, base_url, apkversion="1.0.0"):
         self.userid = userid
+        self.uid = userid
+        self.actid = userid
         self.password_plain = password_plain
         self.factor2 = factor2
         self.vc = vc
