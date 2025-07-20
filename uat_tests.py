@@ -68,18 +68,30 @@ def run_uat_test(ps_api=None):
     log("🔁 Placing 2 test orders...")
     order1 = place_order("B", "SBIN-EQ", 1, "LMT", 780.0, "uat_order_1")
     log(f"Order 1: {order1}")
+    def check_expiry(order_resp):
+    if order_resp.get("stat") == "Not_Ok" and "Session Expired" in order_resp.get("emsg", ""):
+        log("⚠️ Session expired. Please re-login or update jKey manually.")
 
     order2 = place_order("S", "TATAMOTORS-EQ", 1, "LMT", 980.0, "uat_order_2")
     log(f"Order 2: {order2}")
+    def check_expiry(order_resp):
+    if order_resp.get("stat") == "Not_Ok" and "Session Expired" in order_resp.get("emsg", ""):
+        log("⚠️ Session expired. Please re-login or update jKey manually.")
 
     time.sleep(2)
 
     log("🟢 Placing 2 market orders for trade confirmation...")
     trade1 = place_order("B", "SBIN-EQ", 1, "MKT", 0.0, "uat_trade_1")
     log(f"Market Order 1: {trade1}")
+    def check_expiry(order_resp):
+    if order_resp.get("stat") == "Not_Ok" and "Session Expired" in order_resp.get("emsg", ""):
+        log("⚠️ Session expired. Please re-login or update jKey manually.")
 
     trade2 = place_order("S", "TATAMOTORS-EQ", 1, "MKT", 0.0, "uat_trade_2")
     log(f"Market Order 2: {trade2}")
+    def check_expiry(order_resp):
+    if order_resp.get("stat") == "Not_Ok" and "Session Expired" in order_resp.get("emsg", ""):
+        log("⚠️ Session expired. Please re-login or update jKey manually.")
 
     log("🔍 NOTE: Fetch trade book and order modification are not implemented in raw API yet.")
     return log_msgs
