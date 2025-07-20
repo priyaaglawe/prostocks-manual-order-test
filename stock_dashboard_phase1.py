@@ -61,20 +61,21 @@ if "ps_api" in st.session_state:
         st.text_area("📋 Test Log", "\n".join(logs), height=400)
 
 
-    st.markdown("### 📝 Manual Order Placement")
+        st.markdown("### 📝 Manual Order Placement")
 
-    with st.form("manual_order_form"):
     # ✅ Predefined 10 symbols
     symbols = [
         "SBIN-EQ", "RELIANCE-EQ", "TATAMOTORS-EQ", "INFY-EQ", "ITC-EQ",
         "HDFCBANK-EQ", "ICICIBANK-EQ", "HCLTECH-EQ", "AXISBANK-EQ", "WIPRO-EQ"
     ]
-    tsym = st.selectbox("📈 Choose Trading Symbol", symbols)
-    qty = st.number_input("Quantity", min_value=1, step=1)
-    price_type = st.selectbox("Order Type", ["LMT", "MKT"])
-    price = st.number_input("Price (0 for MKT)", min_value=0.0, step=0.05)
-    trantype = st.selectbox("Buy or Sell", ["B", "S"])
-    remarks = st.text_input("Remarks", value="manual_order")
+
+    with st.form("manual_order_form"):
+        tsym = st.selectbox("📈 Choose Trading Symbol", symbols)
+        qty = st.number_input("Quantity", min_value=1, step=1)
+        price_type = st.selectbox("Order Type", ["LMT", "MKT"])
+        price = st.number_input("Price (0 for MKT)", min_value=0.0, step=0.05)
+        trantype = st.selectbox("Buy or Sell", ["B", "S"])
+        remarks = st.text_input("Remarks", value="manual_order")
 
         submit_order = st.form_submit_button("📤 Place Order")
 
