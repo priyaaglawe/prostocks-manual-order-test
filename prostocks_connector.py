@@ -64,10 +64,10 @@ class ProStocksAPI:
     self.session_token = data["susertoken"]
     self.headers["Authorization"] = self.session_token
     print("✅ Login Success!")
-    print("🔑 Session Token set:", self.session_token)   # 👈 ADD THIS LINE
+    print("🔑 Session Token set:", self.session_token)
     return True, self.session_token
-                else:
-                    return False, data.get("emsg", "Unknown login error")
+else:
+    return False, data.get("emsg", "Unknown login error")
             else:
                 return False, f"HTTP {response.status_code}: {response.text}"
         except requests.exceptions.RequestException as e:
