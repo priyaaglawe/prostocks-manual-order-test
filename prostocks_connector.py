@@ -74,6 +74,34 @@ class ProStocksAPI:
         except requests.exceptions.RequestException as e:
             return False, f"RequestException: {e}"
 
+    def _post(self, url, data):
+        try:
+            response = self.session.post(url, headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": self.session_token
+            }, data=data)
+
+            json_resp = response.json()
+
+            if json_resp.get("stat") == "Not_Ok" and "Session Expired" in json_resp.get("emsg", ""):
+                print("🔁 Session expired. Attempting re-login...")
+                success, _ = self.login()
+                if success:
+                    self.headers["Authorization"] = self.session_token
+                    new_data = data.replace(f"jKey=", f"jKey={self.session_token}")
+                    response = self.session.post(url, headers={
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Authorization": self.session_token
+                    }, data=new_data)
+                    return response.json()
+                else:
+                    return {"stat": "Not_Ok", "emsg": "Session expired and auto re-login failed."}
+
+            return json_resp
+
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
+
     def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
                     quantity, discloseqty, price_type, price=None, trigger_price=None,
                     retention='DAY', remarks=''):
@@ -132,35 +160,6 @@ class ProStocksAPI:
         data = f"jData={jdata}&jKey={self.session_token}"
         return self._post(url, data)
 
-    def _post(self, url, data):
-    try:
-        response = self.session.post(url, headers={
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": self.session_token
-        }, data=data)
-
-        json_resp = response.json()
-
-        if json_resp.get("stat") == "Not_Ok" and "Session Expired" in json_resp.get("emsg", ""):
-            print("🔁 Session expired. Attempting re-login...")
-            success, _ = self.login()
-            if success:
-                # Update session_token in headers and retry
-                self.headers["Authorization"] = self.session_token
-                new_data = data.replace(f"jKey=", f"jKey={self.session_token}")
-                response = self.session.post(url, headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Authorization": self.session_token
-                }, data=new_data)
-                return response.json()
-            else:
-                return {"stat": "Not_Ok", "emsg": "Session expired and auto re-login failed."}
-
-        return json_resp
-
-    except Exception as e:
-        return {"stat": "Not_Ok", "emsg": str(e)}
-
 
 # ✅ Helper wrapper function for easy login
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
@@ -190,4 +189,3 @@ def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     except Exception as e:
         print("❌ Login Exception:", e)
         return None
-
