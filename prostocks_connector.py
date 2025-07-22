@@ -129,6 +129,7 @@ class ProStocksAPI:
             order_data["prc"] = str(price)
         if trigger_price is not None:
             order_data["trgprc"] = str(trigger_price)
+       print("📦 Order Payload:", order_data)
 
         jdata_str = json.dumps(order_data, separators=(",", ":"))
         payload = f"jData={jdata_str}&jKey={self.session_token}"
