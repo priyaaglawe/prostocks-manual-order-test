@@ -85,7 +85,7 @@ if "ps_api" in st.session_state:
 
         submit_order = st.form_submit_button("📤 Place Order")
 
-        if submit_order:
+                if submit_order:
             order = st.session_state["ps_api"].place_order(
                 buy_or_sell=trantype,
                 product_type="C",
@@ -99,8 +99,8 @@ if "ps_api" in st.session_state:
             )
 
             # 🔁 Refresh jKey in session_state if changed
-if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
-    st.session_state["jKey"] = st.session_state["ps_api"].session_token
+            if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
+                st.session_state["jKey"] = st.session_state["ps_api"].session_token
 
             st.write("📋 Order Response:", order)
 
