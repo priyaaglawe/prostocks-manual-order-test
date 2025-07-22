@@ -5,7 +5,6 @@ import requests
 import json
 import os
 
-
 class ProStocksAPI:
     def __init__(self, userid, password_plain, factor2, vc, api_key, imei, base_url, apkversion="1.0.0"):
         self.userid = userid
@@ -125,11 +124,18 @@ class ProStocksAPI:
             "remarks": remarks
         }
 
-        if price is not None:
+        # ✅ Market order requires prc = 0
+        if price_type.upper() == "MKT":
+            order_data["prc"] = "0"
+        elif price is not None:
             order_data["prc"] = str(price)
+        else:
+            raise ValueError("Price is required for non-MKT orders.")
+
         if trigger_price is not None:
             order_data["trgprc"] = str(trigger_price)
-       print("📦 Order Payload:", order_data)
+
+        print("📦 Order Payload:", order_data)
 
         jdata_str = json.dumps(order_data, separators=(",", ":"))
         payload = f"jData={jdata_str}&jKey={self.session_token}"
@@ -163,7 +169,6 @@ class ProStocksAPI:
         data = f"jData={jdata}&jKey={self.session_token}"
         return self._post(url, data)
 
-
 # ✅ Helper wrapper function for easy login
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     user_id = user_id or os.getenv("PROSTOCKS_USER_ID")
@@ -192,4 +197,5 @@ def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     except Exception as e:
         print("❌ Login Exception:", e)
         return None
+
 
