@@ -75,7 +75,7 @@ if "ps_api" in st.session_state:
         "HDFCBANK-EQ", "ICICIBANK-EQ", "HCLTECH-EQ", "AXISBANK-EQ", "WIPRO-EQ"
     ]
 
-    with st.form("manual_order_form"):
+        with st.form("manual_order_form"):
         tsym = st.selectbox("📈 Choose Trading Symbol", symbols)
         qty = st.number_input("Quantity", min_value=1, step=1)
         price_type = st.selectbox("Order Type", ["LMT", "MKT"])
@@ -85,7 +85,7 @@ if "ps_api" in st.session_state:
 
         submit_order = st.form_submit_button("📤 Place Order")
 
-                if submit_order:
+        if submit_order:
             order = st.session_state["ps_api"].place_order(
                 buy_or_sell=trantype,
                 product_type="C",
@@ -108,6 +108,7 @@ if "ps_api" in st.session_state:
                 st.error(f"❌ Order failed: {order.get('emsg')}")
                 if "Session Expired" in order.get("emsg", ""):
                     st.warning("🔁 Try refreshing jKey manually or re-login.")
+
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
