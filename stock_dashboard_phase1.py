@@ -104,10 +104,21 @@ if "ps_api" in st.session_state:
 
             st.write("📋 Order Response:", order)
 
-            if "Not_Ok" in order.get("stat", ""):
-                st.error(f"❌ Order failed: {order.get('emsg')}")
-                if "Session Expired" in order.get("emsg", ""):
-                    st.warning("🔁 Try refreshing jKey manually or re-login.")
+if order and order.get("stat") == "Ok":
+    st.success(f"✅ Order Placed! Order No: {order['norenordno']}")
+    
+    # ✅ Store order number in session state
+    st.session_state["norenordno"] = order["norenordno"]
+    st.session_state["order_status"] = "open"  # Assume it's open for now
+
+    # Optional: auto-refresh order book to reflect latest
+    order_book_resp = st.session_state["ps_api"].order_book()
+    if order_book_resp.get("stat") == "Ok":
+        st.session_state["order_book"] = order_book_resp.get("data", [])
+else:
+    st.error(f"❌ Order failed: {order.get('emsg')}")
+    if "Session Expired" in order.get("emsg", ""):
+        st.warning("🔁 Try refreshing jKey manually or re-login.")
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
