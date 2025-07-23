@@ -60,7 +60,9 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
         st.session_state["ps_api"].session_token = new_jkey
         st.success("✅ jKey updated in session.")
 
+# MAIN DASHBOARD
 if "ps_api" in st.session_state:
+
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
         logs = run_uat_test(ps_api=st.session_state["ps_api"])
@@ -69,7 +71,6 @@ if "ps_api" in st.session_state:
 
     st.markdown("### 📝 Manual Order Placement")
 
-    # ✅ Predefined 10 symbols
     symbols = [
         "SBIN-EQ", "RELIANCE-EQ", "TATAMOTORS-EQ", "INFY-EQ", "ITC-EQ",
         "HDFCBANK-EQ", "ICICIBANK-EQ", "HCLTECH-EQ", "AXISBANK-EQ", "WIPRO-EQ"
@@ -86,44 +87,33 @@ if "ps_api" in st.session_state:
         submit_order = st.form_submit_button("📤 Place Order")
 
         if submit_order:
-    order = st.session_state["ps_api"].place_order(
-        buy_or_sell=trantype,
-        product_type="C",
-        exchange="NSE",
-        tradingsymbol=tsym,
-        quantity=qty,
-        discloseqty=0,
-        price_type=price_type,
-        price=price if price_type == "LMT" else None,
-        remarks=remarks
-    )
+            order = st.session_state["ps_api"].place_order(
+                buy_or_sell=trantype,
+                product_type="C",
+                exchange="NSE",
+                tradingsymbol=tsym,
+                quantity=qty,
+                discloseqty=0,
+                price_type=price_type,
+                price=price if price_type == "LMT" else None,
+                remarks=remarks
+            )
 
-    # 🔁 Refresh jKey in session_state if changed
-    if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
-        st.session_state["jKey"] = st.session_state["ps_api"].session_token
+            if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
+                st.session_state["jKey"] = st.session_state["ps_api"].session_token
 
-    st.write("📋 Order Response:", order)
+            st.write("📋 Order Response:", order)
 
-    if "Not_Ok" in order.get("stat", ""):
-        st.error(f"❌ Order failed: {order.get('emsg')}")
-        if "Session Expired" in order.get("emsg", ""):
-            st.warning("🔁 Try refreshing jKey manually or re-login.")
-    elif order.get("stat") == "Ok":
-        st.success(f"✅ Order Placed! Order No: {order['norenordno']}")
+            if "Not_Ok" in order.get("stat", ""):
+                st.error(f"❌ Order failed: {order.get('emsg')}")
+                if "Session Expired" in order.get("emsg", ""):
+                    st.warning("🔁 Try refreshing jKey manually or re-login.")
+            elif order.get("stat") == "Ok":
+                st.success(f"✅ Order Placed! Order No: {order['norenordno']}")
+                st.session_state["norenordno"] = order["norenordno"]
+                st.session_state["order_status"] = "open"
 
-        # ✅ Store order info in session state
-        st.session_state["norenordno"] = order["norenordno"]
-        st.session_state["order_status"] = "open"  # Assume open until confirmed by order book
-
-    # Optional: auto-refresh order book to reflect latest
-    order_book_resp = st.session_state["ps_api"].order_book()
-    if order_book_resp.get("stat") == "Ok":
-        st.session_state["order_book"] = order_book_resp.get("data", [])
-else:
-    st.error(f"❌ Order failed: {order.get('emsg')}")
-    if "Session Expired" in order.get("emsg", ""):
-        st.warning("🔁 Try refreshing jKey manually or re-login.")
-
+    # ==== CANCEL / MODIFY ORDER SECTION ====
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
     if st.button("📘 Refresh Order Book"):
@@ -147,7 +137,6 @@ else:
     if "modify_form" in st.session_state:
         order = st.session_state["modify_form"]
         st.markdown("### 🛠 Modify Order Form")
-
         with st.form("modify_order_form"):
             tsym = st.text_input("Symbol", value=order["tsym"])
             qty = st.number_input("Quantity", value=int(order["qty"]))
@@ -157,9 +146,7 @@ else:
 
             submit_mod = st.form_submit_button("🔁 Submit Modification")
             if submit_mod:
-                # Cancel old order
                 st.session_state["ps_api"].cancel_order(order["norenordno"])
-                # Place modified
                 new_order = st.session_state["ps_api"].place_order(
                     buy_or_sell=trantype,
                     product_type="C",
@@ -175,9 +162,8 @@ else:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    st.markdown("### 📒 Order Book Status") 
-
-if "ps_api" in st.session_state:
+    # ==== ORDER BOOK STATUS ====
+    st.markdown("### 📒 Order Book Status")
     order_book_resp = st.session_state["ps_api"].order_book()
     if order_book_resp.get("stat") == "Ok" and "orders" in order_book_resp:
         orders = order_book_resp["orders"]
@@ -222,10 +208,3 @@ if "ps_api" in st.session_state:
         st.error("⚠️ Failed to fetch order book.")
 else:
     st.warning("🔒 Please log in to view your order book.")
-
-
-            
-
-
-
-        
