@@ -160,12 +160,50 @@ if "ps_api" in st.session_state:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    st.markdown("### 📥 Trade Book")
+    st.markdown("### 📒 Order Book Status")
 
-    if st.button("📥 View Trade Book"):
-        trades = st.session_state["ps_api"].trade_book()
-        df = pd.DataFrame(trades.get("data", []))
-        st.dataframe(df if not df.empty else pd.DataFrame([{"info": "No trades yet"}]))
+order_book_resp = st.session_state["ps_api"].order_book()
+if order_book_resp.get("stat") == "Ok" and "orders" in order_book_resp:
+    orders = order_book_resp["orders"]
+    for order in orders:
+        st.json(order)
+        status = order.get("status", "").upper()
+        st.markdown(f"### 🔎 Order Status: **{status}**")
+
+        if status in ["PENDING", "OPEN"]:
+            st.info("🔁 This order can still be modified or canceled.")
+            with st.form(key=f"modify_cancel_{order['norenordno']}"):
+                action = st.radio("Action", ["Modify", "Cancel"], key=f"action_{order['norenordno']}")
+                new_qty = st.number_input("New Quantity", value=int(order["qty"]), key=f"qty_{order['norenordno']}")
+                new_price = st.number_input("New Price", value=float(order.get("prc", 0)), key=f"prc_{order['norenordno']}")
+                submit_action = st.form_submit_button("Submit")
+
+                if submit_action:
+                    if action == "Cancel":
+                        cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                        st.write("❌ Cancel Response:", cancel_resp)
+                    elif action == "Modify":
+                        cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                        st.write("🚫 Cancel (for modify):", cancel_resp)
+                        time.sleep(1)
+                        mod_resp = st.session_state["ps_api"].place_order(
+                            buy_or_sell=order["trantype"],
+                            product_type=order["prd"],
+                            exchange=order["exch"],
+                            tradingsymbol=order["tsym"],
+                            quantity=new_qty,
+                            discloseqty=0,
+                            price_type=order["prctyp"],
+                            price=new_price if order["prctyp"] == "LMT" else 0.0,
+                            retention=order["ret"],
+                            remarks="modified_order"
+                        )
+                        st.write("🆕 Modify Re-Place Response:", mod_resp)
+        else:
+            st.success("✅ Order is complete and cannot be modified or canceled.")
+            st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
+else:
+    st.error("⚠️ Failed to fetch order book.")
 
             
 
