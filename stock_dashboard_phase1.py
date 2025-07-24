@@ -86,7 +86,7 @@ if "ps_api" in st.session_state:
 
         submit_order = st.form_submit_button("📤 Place Order")
 
-        if submit_order:
+                if submit_order:
             order = st.session_state["ps_api"].place_order(
                 buy_or_sell=trantype,
                 product_type="C",
