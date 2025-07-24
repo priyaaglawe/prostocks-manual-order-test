@@ -162,7 +162,10 @@ if "ps_api" in st.session_state:
                 st.write("Response:", mod_resp)
                 del st.session_state["modify_form"]
 
-    st.markdown(f"### 🔎 Order Status: **{status}**")
+    # Assuming you're looping like: for order in order_book:
+
+status = order.get("status", "UNKNOWN")
+st.markdown(f"### 🔎 Order Status: **{status}**")
 
 if status in ["PENDING", "OPEN"]:
     st.success("🔁 This order can still be modified or canceled.")
@@ -172,7 +175,7 @@ if status in ["PENDING", "OPEN"]:
         cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
         st.write("🚫 Cancel Response:", cancel_resp)
 
-    # Modify Expander Section
+    # Modify Expander
     with st.expander("🛠 Modify Order", expanded=False):
         new_qty = st.number_input(
             "New Quantity", value=int(order["qty"]),
@@ -184,9 +187,11 @@ if status in ["PENDING", "OPEN"]:
         )
 
         if st.button("✅ Submit Modification", key=f"submit_mod_{order['norenordno']}"):
+            # Step 1: Cancel Original
             cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
             st.write("🛑 Cancelled for Modification:", cancel_resp)
 
+            # Step 2: Re-place new order
             mod_resp = st.session_state["ps_api"].place_order(
                 buy_or_sell=order["trantype"],
                 product_type=order["prd"],
@@ -200,6 +205,6 @@ if status in ["PENDING", "OPEN"]:
             )
             st.success("✅ Order Modified and Replaced")
             st.write("🆕 New Order Response:", mod_resp)
+
 else:
-    st.success("✅ Order is complete and cannot be modified or canceled.")
-    st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
+    st.info("✅ Order is complete and cannot be modified or canceled.")
