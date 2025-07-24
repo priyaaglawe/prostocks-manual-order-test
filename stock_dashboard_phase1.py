@@ -8,12 +8,12 @@ from dashboard_logic import load_settings, save_settings, load_credentials
 from datetime import datetime
 from uat_tests import run_uat_test
 
-# === Load and Apply Settings
+# === Load and Apply Settings (only once)
 if "settings_loaded" not in st.session_state:
     st.session_state.update(load_settings())
     st.session_state["settings_loaded"] = True
 
-# === Load Credentials
+# === Load Credentials from .env
 creds = load_credentials()
 
 # 🔐 Sidebar Login
@@ -30,6 +30,7 @@ with st.sidebar:
         apkversion = st.text_input("APK Version", value=creds["apkversion"])
 
         submitted = st.form_submit_button("🔐 Login")
+
         if submitted:
             try:
                 ps_api = ProStocksAPI(uid, pwd, factor2, vc, api_key, imei, base_url, apkversion)
@@ -44,7 +45,7 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"❌ Exception: {e}")
 
-# 🔓 Logout
+# 🔓 Logout button if already logged in
 if "ps_api" in st.session_state:
     st.markdown("---")
     if st.button("🔓 Logout"):
@@ -52,7 +53,7 @@ if "ps_api" in st.session_state:
         st.success("✅ Logged out successfully")
         st.rerun()
 
-# 🔑 Manual jKey update
+# 🔑 Manual jKey update UI
 with st.expander("🔑 Advanced: Update jKey Manually"):
     new_jkey = st.text_input("Paste New jKey", value=st.session_state.get("jKey", ""))
     if st.button("📂 Update jKey"):
@@ -60,7 +61,7 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
         st.session_state["ps_api"].session_token = new_jkey
         st.success("✅ jKey updated in session.")
 
-# === Main Dashboard
+# MAIN DASHBOARD
 if "ps_api" in st.session_state:
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
@@ -69,6 +70,7 @@ if "ps_api" in st.session_state:
         st.text_area("📋 Test Log", "\n".join(logs), height=400)
 
     st.markdown("### 📝 Manual Order Placement")
+
     symbols = [
         "SBIN-EQ", "RELIANCE-EQ", "TATAMOTORS-EQ", "INFY-EQ", "ITC-EQ",
         "HDFCBANK-EQ", "ICICIBANK-EQ", "HCLTECH-EQ", "AXISBANK-EQ", "WIPRO-EQ"
@@ -81,6 +83,7 @@ if "ps_api" in st.session_state:
         price = st.number_input("Price (0 for MKT)", min_value=0.0, step=0.05)
         trantype = st.selectbox("Buy or Sell", ["B", "S"])
         remarks = st.text_input("Remarks", value="manual_order")
+
         submit_order = st.form_submit_button("📤 Place Order")
 
         if submit_order:
@@ -95,46 +98,40 @@ if "ps_api" in st.session_state:
                 price=price if price_type == "LMT" else None,
                 remarks=remarks
             )
+
             st.write("📋 Order Response:", order)
-            if order.get("stat") == "Ok":
+
+            if "Not_Ok" in order.get("stat", ""):
+                st.error(f"❌ Order failed: {order.get('emsg')}")
+                if "Session Expired" in order.get("emsg", ""):
+                    st.warning("🔁 Try refreshing jKey manually or re-login.")
+            elif order.get("stat") == "Ok":
                 st.success(f"✅ Order Placed! Order No: {order['norenordno']}")
                 st.session_state["norenordno"] = order["norenordno"]
-            else:
-                st.error(f"❌ Order failed: {order.get('emsg')}")
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
-   if st.button("📘 Refresh Order Book"):
-    st.info("⏳ Fetching order book. Please wait a moment...")
-    time.sleep(2)  # 🕒 Give API time to register new orders
-
-    orders = st.session_state["ps_api"].order_book()
-    if isinstance(orders, dict) and orders.get("stat") == "Ok":
-        st.session_state["order_book"] = orders.get("data", [])
-        if not st.session_state["order_book"]:
-            st.warning("⚠️ Order book is currently empty. Try again after a few seconds.")
+    if st.button("📘 Refresh Order Book"):
+        orders = st.session_state["ps_api"].order_book()
+        if isinstance(orders, dict) and orders.get("stat") == "Ok":
+            st.session_state["order_book"] = orders.get("data", [])
         else:
-            st.success(f"✅ {len(st.session_state['order_book'])} orders loaded.")
-    else:
-        st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
+            st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
-    # Render Orders with Cancel/Modify
     if "order_book" in st.session_state:
         for order in st.session_state["order_book"]:
             col1, col2, col3 = st.columns([4, 2, 2])
             with col1:
                 st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
             with col2:
-                if st.button("❌ Cancel", key=f"cancel_{order['norenordno']}"):
+                if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
                     cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                    st.success("✅ Order Cancelled")
                     st.write(cancel_resp)
             with col3:
-                if st.button("🛠 Modify", key=f"modify_{order['norenordno']}"):
+                if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
                     st.session_state["modify_form"] = order
                     st.rerun()
 
-    # Show Modify Form
     if "modify_form" in st.session_state:
         order = st.session_state["modify_form"]
         st.markdown("### 🛠 Modify Order Form")
@@ -163,12 +160,14 @@ if "ps_api" in st.session_state:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    # Final Order Book Display
     st.markdown("### 📒 Order Book Status")
     order_book = st.session_state["ps_api"].order_book()
 
-    if isinstance(order_book, dict) and order_book.get("stat") == "Ok":
-        orders = order_book.get("data") or []
+    if isinstance(order_book, list):
+        st.subheader("📒 Order Book")
+        st.table(order_book)
+    elif isinstance(order_book, dict) and order_book.get("stat") == "Ok":
+        orders = order_book.get("data") or order_book.get("orders") or []
         if orders:
             for order in orders:
                 st.json(order)
@@ -178,6 +177,7 @@ if "ps_api" in st.session_state:
                     st.info("🔁 This order can still be modified or canceled.")
                 else:
                     st.success("✅ Order is complete and cannot be modified or canceled.")
+                    st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
         else:
             st.info("ℹ️ No orders found.")
     elif isinstance(order_book, dict) and order_book.get("stat") == "Not_Ok":
@@ -186,4 +186,3 @@ if "ps_api" in st.session_state:
         st.warning("⚠️ Unexpected response from order book.")
 else:
     st.warning("🔒 Please log in to view your order book.")
-
