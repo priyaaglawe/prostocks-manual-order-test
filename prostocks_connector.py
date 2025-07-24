@@ -82,13 +82,11 @@ class ProStocksAPI:
 
             json_resp = response.json()
 
-            # ✅ Handle Session Expiry
             if json_resp.get("stat") == "Not_Ok" and "Session Expired" in json_resp.get("emsg", ""):
                 print("🔁 Session expired. Attempting re-login...")
                 success, _ = self.login()
                 if success:
                     self.headers["Authorization"] = self.session_token
-                    # ⏎ Replace token in payload
                     new_data = data.replace(f"jKey=", f"jKey={self.session_token}")
                     response = self.session.post(url, headers={
                         "Content-Type": "application/x-www-form-urlencoded",
@@ -124,7 +122,6 @@ class ProStocksAPI:
             "remarks": remarks
         }
 
-        # ✅ Market order requires prc = 0
         if price_type.upper() == "MKT":
             order_data["prc"] = "0"
         elif price is not None:
@@ -151,8 +148,24 @@ class ProStocksAPI:
 
     def order_book(self):
         url = f"{self.base_url}/OrderBook"
-        payload = f"jData={{\"uid\":\"{self.userid}\"}}&jKey={self.session_token}"
-        return self._post(url, payload)
+        jdata = {"uid": self.userid}
+        payload = {
+            "jData": json.dumps(jdata),
+            "jKey": self.session_token
+        }
+
+        try:
+            response = self.session.post(url, data=payload)
+            data = response.json()
+
+            if isinstance(data, list) and data and data[0].get("stat") == "Ok":
+                return {"stat": "Ok", "orders": data}
+            elif isinstance(data, dict) and data.get("stat") == "Not_Ok":
+                return {"stat": "Not_Ok", "emsg": data.get("emsg", "Unknown Error")}
+            else:
+                return {"stat": "Not_Ok", "emsg": "Unexpected format from API"}
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
     def trade_book(self):
         url = f"{self.base_url}/TradeBook"
@@ -169,7 +182,7 @@ class ProStocksAPI:
         data = f"jData={jdata}&jKey={self.session_token}"
         return self._post(url, data)
 
-# ✅ Helper wrapper function for easy login
+# ✅ Helper function to log in with environment support
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     user_id = user_id or os.getenv("PROSTOCKS_USER_ID")
     password = password or os.getenv("PROSTOCKS_PASSWORD")
