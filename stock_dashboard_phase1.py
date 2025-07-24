@@ -104,18 +104,19 @@ if "ps_api" in st.session_state:
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
-    if st.button("📘 Refresh Order Book"):
-        st.info("⏳ Fetching order book. Please wait a moment...")
-        time.sleep(2)  # Let backend process
-        orders = st.session_state["ps_api"].order_book()
-        if isinstance(orders, dict) and orders.get("stat") == "Ok":
-            st.session_state["order_book"] = orders.get("data", [])
-            if not st.session_state["order_book"]:
-                st.warning("⚠️ Order book is currently empty. Try again after a few seconds.")
-            else:
-                st.success(f"✅ {len(st.session_state['order_book'])} orders loaded.")
+   if st.button("📘 Refresh Order Book"):
+    st.info("⏳ Fetching order book. Please wait a moment...")
+    time.sleep(2)  # 🕒 Give API time to register new orders
+
+    orders = st.session_state["ps_api"].order_book()
+    if isinstance(orders, dict) and orders.get("stat") == "Ok":
+        st.session_state["order_book"] = orders.get("data", [])
+        if not st.session_state["order_book"]:
+            st.warning("⚠️ Order book is currently empty. Try again after a few seconds.")
         else:
-            st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
+            st.success(f"✅ {len(st.session_state['order_book'])} orders loaded.")
+    else:
+        st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
     # Render Orders with Cancel/Modify
     if "order_book" in st.session_state:
