@@ -2,9 +2,10 @@
 
 import streamlit as st
 import pandas as pd
+import time
 from prostocks_connector import ProStocksAPI
 from dashboard_logic import load_settings, save_settings, load_credentials
-from datetime import datetime, time
+from datetime import datetime
 from uat_tests import run_uat_test
 
 # === Load and Apply Settings (only once)
@@ -62,7 +63,6 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
 
 # MAIN DASHBOARD
 if "ps_api" in st.session_state:
-
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
         logs = run_uat_test(ps_api=st.session_state["ps_api"])
@@ -99,9 +99,6 @@ if "ps_api" in st.session_state:
                 remarks=remarks
             )
 
-            if st.session_state["jKey"] != st.session_state["ps_api"].session_token:
-                st.session_state["jKey"] = st.session_state["ps_api"].session_token
-
             st.write("📋 Order Response:", order)
 
             if "Not_Ok" in order.get("stat", ""):
@@ -111,14 +108,15 @@ if "ps_api" in st.session_state:
             elif order.get("stat") == "Ok":
                 st.success(f"✅ Order Placed! Order No: {order['norenordno']}")
                 st.session_state["norenordno"] = order["norenordno"]
-                st.session_state["order_status"] = "open"
 
-    # ==== CANCEL / MODIFY ORDER SECTION ====
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
     if st.button("📘 Refresh Order Book"):
         orders = st.session_state["ps_api"].order_book()
-        st.session_state["order_book"] = orders.get("data", [])
+        if isinstance(orders, dict) and orders.get("stat") == "Ok":
+            st.session_state["order_book"] = orders.get("data", [])
+        else:
+            st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
     if "order_book" in st.session_state:
         for order in st.session_state["order_book"]:
@@ -162,50 +160,30 @@ if "ps_api" in st.session_state:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    # ==== ORDER BOOK STATUS ====
     st.markdown("### 📒 Order Book Status")
-    order_book_resp = st.session_state["ps_api"].order_book()
-    if order_book_resp.get("stat") == "Ok" and "orders" in order_book_resp:
-        orders = order_book_resp["orders"]
-        for order in orders:
-            st.json(order)
-            status = order.get("status", "")
-            st.markdown(f"### 🔎 Order Status: **{status}**")
+    order_book = st.session_state["ps_api"].order_book()
 
-            if status in ["PENDING", "OPEN"]:
-                st.info("🔁 This order can still be modified or canceled.")
-                with st.form(key=f"modify_cancel_{order['norenordno']}"):
-                    action = st.radio("Action", ["Modify", "Cancel"], key=f"action_{order['norenordno']}")
-                    new_qty = st.number_input("New Quantity", value=int(order["qty"]), key=f"qty_{order['norenordno']}")
-                    new_price = st.number_input("New Price", value=float(order.get("prc", 0)), key=f"prc_{order['norenordno']}")
-                    submit_action = st.form_submit_button("Submit")
-
-                    if submit_action:
-                        if action == "Cancel":
-                            cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                            st.write("❌ Cancel Response:", cancel_resp)
-                        elif action == "Modify":
-                            cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                            st.write("🚫 Cancel (for modify):", cancel_resp)
-                            time.sleep(1)
-                            mod_resp = st.session_state["ps_api"].place_order(
-                                buy_or_sell=order["trantype"],
-                                product_type=order["prd"],
-                                exchange=order["exch"],
-                                tradingsymbol=order["tsym"],
-                                quantity=new_qty,
-                                discloseqty=0,
-                                price_type=order["prctyp"],
-                                price=new_price,
-                                retention=order["ret"],
-                                remarks="modified_order"
-                            )
-                            st.write("🌟 Modify Re-Place Response:", mod_resp)
-            else:
-                st.success("✅ Order is complete and cannot be modified or canceled.")
-                st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
+    if isinstance(order_book, list):
+        st.subheader("📒 Order Book")
+        st.table(order_book)
+    elif isinstance(order_book, dict) and order_book.get("stat") == "Ok":
+        orders = order_book.get("data") or order_book.get("orders") or []
+        if orders:
+            for order in orders:
+                st.json(order)
+                status = order.get("status", "")
+                st.markdown(f"### 🔎 Order Status: **{status}**")
+                if status in ["PENDING", "OPEN"]:
+                    st.info("🔁 This order can still be modified or canceled.")
+                else:
+                    st.success("✅ Order is complete and cannot be modified or canceled.")
+                    st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
+        else:
+            st.info("ℹ️ No orders found.")
+    elif isinstance(order_book, dict) and order_book.get("stat") == "Not_Ok":
+        st.warning(f"⚠️ Order Book Error: {order_book.get('emsg')}")
     else:
-        st.error("⚠️ Failed to fetch order book.")
+        st.warning("⚠️ Unexpected response from order book.")
 else:
     st.warning("🔒 Please log in to view your order book.")
 
