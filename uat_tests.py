@@ -37,7 +37,7 @@ def run_uat_test(ps_api=None):
             "tsym": tsym,
             "qty": str(qty),
             "prc": str(prc),
-            "prd": "C",
+            "prd": "I",
             "trantype": trantype,
             "prctyp": prctyp,
             "ret": "DAY",
