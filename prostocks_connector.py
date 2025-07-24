@@ -147,26 +147,26 @@ class ProStocksAPI:
             return {"stat": "Not_Ok", "emsg": str(e)}
 
     def order_book(self):
-    url = f"{self.base_url}/OrderBook"
-    jdata = {"uid": self.userid}
-    payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
+        url = f"{self.base_url}/OrderBook"
+        jdata = {"uid": self.userid}
+        payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
 
-    try:
-        response = self.session.post(
-            url,
-            data=payload,
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
-        data = response.json()
+        try:
+            response = self.session.post(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+            data = response.json()
 
-        if isinstance(data, list) and data and data[0].get("stat") == "Ok":
-            return {"stat": "Ok", "orders": data}
-        elif isinstance(data, dict) and data.get("stat") == "Not_Ok":
-            return {"stat": "Not_Ok", "emsg": data.get("emsg", "Unknown Error")}
-        else:
-            return {"stat": "Not_Ok", "emsg": "Unexpected format from API"}
-    except Exception as e:
-        return {"stat": "Not_Ok", "emsg": str(e)}
+            if isinstance(data, list) and data and data[0].get("stat") == "Ok":
+                return {"stat": "Ok", "orders": data}
+            elif isinstance(data, dict) and data.get("stat") == "Not_Ok":
+                return {"stat": "Not_Ok", "emsg": data.get("emsg", "Unknown Error")}
+            else:
+                return {"stat": "Not_Ok", "emsg": "Unexpected format from API"}
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
     def trade_book(self):
         url = f"{self.base_url}/TradeBook"
@@ -211,5 +211,3 @@ def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     except Exception as e:
         print("❌ Login Exception:", e)
         return None
-
-
