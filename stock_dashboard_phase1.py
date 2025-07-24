@@ -55,7 +55,7 @@ if "ps_api" in st.session_state:
 # 🔑 Manual jKey update UI
 with st.expander("🔑 Advanced: Update jKey Manually"):
     new_jkey = st.text_input("Paste New jKey", value=st.session_state.get("jKey", ""))
-    if st.button("💾 Update jKey"):
+    if st.button("📂 Update jKey"):
         st.session_state["jKey"] = new_jkey
         st.session_state["ps_api"].session_token = new_jkey
         st.success("✅ jKey updated in session.")
@@ -86,7 +86,7 @@ if "ps_api" in st.session_state:
 
         submit_order = st.form_submit_button("📤 Place Order")
 
-                if submit_order:
+        if submit_order:
             order = st.session_state["ps_api"].place_order(
                 buy_or_sell=trantype,
                 product_type="C",
@@ -200,7 +200,7 @@ if "ps_api" in st.session_state:
                                 retention=order["ret"],
                                 remarks="modified_order"
                             )
-                            st.write("🆕 Modify Re-Place Response:", mod_resp)
+                            st.write("🌟 Modify Re-Place Response:", mod_resp)
             else:
                 st.success("✅ Order is complete and cannot be modified or canceled.")
                 st.markdown("> 🔁 Only **Pending** or **Open** orders can be modified or canceled.")
@@ -208,3 +208,4 @@ if "ps_api" in st.session_state:
         st.error("⚠️ Failed to fetch order book.")
 else:
     st.warning("🔒 Please log in to view your order book.")
+
