@@ -45,7 +45,7 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"❌ Exception: {e}")
 
-# 🔓 Logout button if already logged in
+# 🔓 Logout
 if "ps_api" in st.session_state:
     st.markdown("---")
     if st.button("🔓 Logout"):
@@ -53,7 +53,7 @@ if "ps_api" in st.session_state:
         st.success("✅ Logged out successfully")
         st.rerun()
 
-# 🔑 Manual jKey update UI
+# 🔑 jKey Manual Update
 with st.expander("🔑 Advanced: Update jKey Manually"):
     new_jkey = st.text_input("Paste New jKey", value=st.session_state.get("jKey", ""))
     if st.button("📂 Update jKey"):
@@ -121,119 +121,44 @@ if "ps_api" in st.session_state:
             st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
     if "order_book" in st.session_state and st.session_state["order_book"]:
-    for order in st.session_state["order_book"]:
-        status = order.get("status", "UNKNOWN")
-        st.markdown(f"---\n### 🔎 Order Status: {status} for {order.get('tsym')}")
+        for order in st.session_state["order_book"]:
+            status = order.get("status", "UNKNOWN")
+            st.markdown(f"---\n### 🔎 Order Status: **{status}** for `{order.get('tsym')}`")
 
-        if status in ["OPEN", "PENDING"]:
-            st.success("🔁 This order can still be modified or canceled.")
+            if status in ["OPEN", "PENDING"]:
+                st.success("🔁 This order can still be modified or canceled.")
 
-            # ❌ Cancel Button
-            if st.button("❌ Cancel Order", key=f"cancel_{order['norenordno']}"):
-                cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                st.write("🚫 Cancel Response:", cancel_resp)
-
-            # 🛠 Modify Section
-            with st.expander("🛠 Modify Order", expanded=False):
-                new_qty = st.number_input(
-                    "New Quantity", value=int(order["qty"]),
-                    key=f"mod_qty_{order['norenordno']}"
-                )
-                new_prc = st.number_input(
-                    "New Price", value=float(order.get("prc", 0)),
-                    key=f"mod_prc_{order['norenordno']}"
-                )
-                if st.button("✅ Submit Modification", key=f"submit_mod_{order['norenordno']}"):
-                    # Cancel old order
+                if st.button("❌ Cancel Order", key=f"cancel_{order['norenordno']}"):
                     cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                    st.write("🛑 Cancelled for Modification:", cancel_resp)
+                    st.write("🚫 Cancel Response:", cancel_resp)
 
-                    # Re-place modified order
-                    mod_resp = st.session_state["ps_api"].place_order(
-                        buy_or_sell=order["trantype"],
-                        product_type=order.get("prd", "C"),
-                        exchange=order["exch"],
-                        tradingsymbol=order["tsym"],
-                        quantity=new_qty,
-                        discloseqty=0,
-                        price_type=order["prctyp"],
-                        price=new_prc if order["prctyp"] == "LMT" else None,
-                        remarks="Modified via dashboard"
+                with st.expander("🛠 Modify Order", expanded=False):
+                    new_qty = st.number_input(
+                        "New Quantity", value=int(order["qty"]),
+                        key=f"mod_qty_{order['norenordno']}"
                     )
-                    st.success("✅ Order Modified and Replaced")
-                    st.write("🆕 New Order Response:", mod_resp)
-        else:
-            st.info("✅ Order is already completed or cancelled.")
-else:
-    st.info("ℹ️ No Pending or Open orders found.")
+                    new_prc = st.number_input(
+                        "New Price", value=float(order.get("prc", 0)),
+                        key=f"mod_prc_{order['norenordno']}"
+                    )
+                    if st.button("✅ Submit Modification", key=f"submit_mod_{order['norenordno']}"):
+                        cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                        st.write("🛑 Cancelled for Modification:", cancel_resp)
 
-    if "modify_form" in st.session_state:
-        order = st.session_state["modify_form"]
-        st.markdown("### 🛠 Modify Order Form")
-        with st.form("modify_order_form"):
-            tsym = st.text_input("Symbol", value=order["tsym"])
-            qty = st.number_input("Quantity", value=int(order["qty"]))
-            price_type = st.selectbox("Order Type", ["LMT", "MKT"], index=0 if order["prctyp"] == "LMT" else 1)
-            price = st.number_input("Price", value=float(order.get("prc", 0)))
-            trantype = st.selectbox("Buy/Sell", ["B", "S"], index=0 if order["trantype"] == "B" else 1)
-
-            submit_mod = st.form_submit_button("🔁 Submit Modification")
-            if submit_mod:
-                mod_resp = st.session_state["ps_api"].modify_order(
-                    norenordno=order["norenordno"],
-                    tsym=tsym,
-                    qty=qty,
-                    prctyp=price_type,
-                    prc=price,
-                    exch=order["exch"]
-                )
-                st.success("✅ Order Modified")
-                st.write("Response:", mod_resp)
-                del st.session_state["modify_form"]
-
-    # Assuming you're looping like: for order in order_book:
-
-status = order.get("status", "UNKNOWN")
-st.markdown(f"### 🔎 Order Status: **{status}**")
-
-if status in ["PENDING", "OPEN"]:
-    st.success("🔁 This order can still be modified or canceled.")
-
-    # Cancel Button
-    if st.button("❌ Cancel Order", key=f"cancel_{order['norenordno']}"):
-        cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-        st.write("🚫 Cancel Response:", cancel_resp)
-
-    # Modify Expander
-    with st.expander("🛠 Modify Order", expanded=False):
-        new_qty = st.number_input(
-            "New Quantity", value=int(order["qty"]),
-            key=f"mod_qty_{order['norenordno']}"
-        )
-        new_prc = st.number_input(
-            "New Price", value=float(order.get("prc", 0)),
-            key=f"mod_prc_{order['norenordno']}"
-        )
-
-        if st.button("✅ Submit Modification", key=f"submit_mod_{order['norenordno']}"):
-            # Step 1: Cancel Original
-            cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-            st.write("🛑 Cancelled for Modification:", cancel_resp)
-
-            # Step 2: Re-place new order
-            mod_resp = st.session_state["ps_api"].place_order(
-                buy_or_sell=order["trantype"],
-                product_type=order["prd"],
-                exchange=order["exch"],
-                tradingsymbol=order["tsym"],
-                quantity=new_qty,
-                discloseqty=0,
-                price_type=order["prctyp"],
-                price=new_prc if order["prctyp"] == "LMT" else None,
-                remarks="Modified via dashboard"
-            )
-            st.success("✅ Order Modified and Replaced")
-            st.write("🆕 New Order Response:", mod_resp)
-
-else:
-    st.info("✅ Order is complete and cannot be modified or canceled.")
+                        mod_resp = st.session_state["ps_api"].place_order(
+                            buy_or_sell=order["trantype"],
+                            product_type=order.get("prd", "C"),
+                            exchange=order["exch"],
+                            tradingsymbol=order["tsym"],
+                            quantity=new_qty,
+                            discloseqty=0,
+                            price_type=order["prctyp"],
+                            price=new_prc if order["prctyp"] == "LMT" else None,
+                            remarks="Modified via dashboard"
+                        )
+                        st.success("✅ Order Modified and Replaced")
+                        st.write("🆕 New Order Response:", mod_resp)
+            else:
+                st.info("✅ Order is already completed or cancelled.")
+    else:
+        st.info("ℹ️ No Pending or Open orders found.")
