@@ -130,14 +130,13 @@ if "ps_api" in st.session_state:
             with col3:
                 if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
                     st.session_state["modify_form"] = order
-                    st.experimental_rerun()
-# 🧹 Add Cancel Modify Mode Button
-if "modify_form" in st.session_state:
-    if st.button("🧹 Cancel Modify Mode"):
-        del st.session_state["modify_form"]
-        st.experimental_rerun()
+                    st.rerun()
 
     if "modify_form" in st.session_state:
+        if st.button("🧹 Cancel Modify Mode"):
+            del st.session_state["modify_form"]
+            st.rerun()
+
         order = st.session_state["modify_form"]
         st.markdown("### 🛠 Modify Order Form")
         with st.form("modify_order_form"):
@@ -166,8 +165,8 @@ if "modify_form" in st.session_state:
                 del st.session_state["modify_form"]
 
     if "modify_form" not in st.session_state and st.button("📒 View Full Order Book"):
-    order_book = st.session_state["ps_api"].order_book()
-    st.session_state["latest_order_book"] = order_book
+        order_book = st.session_state["ps_api"].order_book()
+        st.session_state["latest_order_book"] = order_book
 
 if "latest_order_book" in st.session_state and "modify_form" not in st.session_state:
     order_book = st.session_state["latest_order_book"]
@@ -196,4 +195,3 @@ if "latest_order_book" in st.session_state and "modify_form" not in st.session_s
         st.warning("⚠️ Unexpected response from order book.")
 else:
     st.warning("🔒 Please log in to view your order book")
-
