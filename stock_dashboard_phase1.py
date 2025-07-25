@@ -61,9 +61,7 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
         st.session_state["ps_api"].session_token = new_jkey
         st.success("✅ jKey updated in session.")
 
-# MAIN DASHBOARD
-if "ps_api" in st.session_state:
-    # MAIN DASHBOARD
+# === MAIN DASHBOARD AREA
 if "ps_api" in st.session_state or "jKey" in st.session_state:
 
     # ✅ Ensure ps_api is always accessible when jKey/session exists
