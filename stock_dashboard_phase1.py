@@ -111,26 +111,46 @@ if "ps_api" in st.session_state:
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
-    if st.button("📘 Refresh Order Book"):
-        orders = st.session_state["ps_api"].order_book()
-        if isinstance(orders, dict) and orders.get("stat") == "Ok":
-            st.session_state["order_book"] = orders.get("data", [])
-        else:
-            st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
+# Optional: Add refresh button
+if st.button("📘 Refresh Order Book"):
+    order_book = ps_api.order_book()
+    if isinstance(order_book, list):
+        st.session_state["order_book"] = order_book
+    else:
+        st.warning("⚠️ Failed to fetch order book or unexpected response format.")
 
-    if "order_book" in st.session_state:
-        for order in st.session_state["order_book"]:
-            col1, col2, col3 = st.columns([4, 2, 2])
+# Show orders if available
+if "order_book" in st.session_state and st.session_state["order_book"]:
+    st.markdown("#### 📒 Order Book Status")
+    
+    for order in st.session_state["order_book"]:
+        # ✅ Print full order for debug
+        st.json(order)
+
+        # ✅ Check status and allow cancel/modify
+        if order.get("status", "").upper() in ["OPEN", "PENDING"]:
+            col1, col2, col3 = st.columns([5, 2, 2])
+
             with col1:
-                st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
+                st.write(
+                    f"🔹 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']} | Price: {order['prc']} | Status: {order['status']}"
+                )
+
             with col2:
                 if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
-                    cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                    st.write(cancel_resp)
+                    cancel_resp = ps_api.cancel_order(order["norenordno"])
+                    st.success(f"✅ Cancelled: {cancel_resp}")
+                    st.rerun()
+
             with col3:
                 if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
                     st.session_state["modify_form"] = order
                     st.rerun()
+        else:
+            st.write(f"ℹ️ Skipping order {order['norenordno']} (Status: {order['status']})")
+
+else:
+    st.info("ℹ️ No Pending or Open orders found.")
 
     if "modify_form" in st.session_state:
         if st.button("🧹 Cancel Modify Mode"):
