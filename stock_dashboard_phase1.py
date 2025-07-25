@@ -136,10 +136,23 @@ if "ps_api" in st.session_state or "jKey" in st.session_state:
 # Optional: Add refresh button
 if st.button("📘 Refresh Order Book"):
     order_book = ps_api.order_book()
-    if isinstance(order_book, list):
-        st.session_state["order_book"] = order_book
+
+# Normalize to a list
+if isinstance(order_book, dict):
+    if order_book.get("stat") == "Ok" and "norenordno" in order_book:
+        # Single order dict
+        st.session_state["order_book"] = [order_book]
+    elif "data" in order_book and isinstance(order_book["data"], list):
+        st.session_state["order_book"] = order_book["data"]
     else:
-        st.warning("⚠️ Failed to fetch order book or unexpected response format.")
+        st.warning("⚠️ Unexpected dict format from order book.")
+        st.session_state["order_book"] = []
+elif isinstance(order_book, list):
+    st.session_state["order_book"] = order_book
+else:
+    st.warning("⚠️ Unknown format returned from order_book().")
+    st.session_state["order_book"] = []
+
 
 # Show orders if available
 if "order_book" in st.session_state and st.session_state["order_book"]:
