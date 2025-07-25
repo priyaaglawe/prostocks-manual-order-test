@@ -146,30 +146,30 @@ class ProStocksAPI:
             print("❌ Place order exception:", e)
             return {"stat": "Not_Ok", "emsg": str(e)}
 
-   def modify_order(self, norenordno, exch, tsym, qty, prctyp, prc="0"):
-    url = f"{self.base_url}/ModifyOrder"
-    jdata = {
-        "uid": self.userid,
-        "norenordno": norenordno,
-        "exch": exch,
-        "tsym": tsym,
-        "qty": str(qty),
-        "prctyp": prctyp,
-        "prc": str(prc)
-    }
+    def modify_order(self, norenordno, exch, tsym, qty, prctyp, prc="0"):
+        url = f"{self.base_url}/ModifyOrder"
+        jdata = {
+            "uid": self.userid,
+            "norenordno": norenordno,
+            "exch": exch,
+            "tsym": tsym,
+            "qty": str(qty),
+            "prctyp": prctyp,
+            "prc": str(prc)
+        }
 
-    payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
+        payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
 
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
 
-    try:
-        response = requests.post(url, data=payload, headers=headers)
-        print("📨 Modify Order Response:", response.text)
-        return response.json()
-    except Exception as e:
-        return {"stat": "Not_Ok", "emsg": f"ModifyOrder Exception: {str(e)}"}
+        try:
+            response = requests.post(url, data=payload, headers=headers)
+            print("📨 Modify Order Response:", response.text)
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": f"ModifyOrder Exception: {str(e)}"}
 
     def order_book(self):
         url = f"{self.base_url}/OrderBook"
@@ -227,3 +227,4 @@ def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     except Exception as e:
         print("❌ Login Exception:", e)
         return None
+
