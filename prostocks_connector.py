@@ -156,20 +156,17 @@ class ProStocksAPI:
         "prc": str(prc)
     }
 
-    payload = {
-        "jData": json.dumps(jdata),
-        "jKey": self.session_token
-    }
+    payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    response = requests.post(url, data=payload, headers=headers)
     try:
+        response = requests.post(url, data=payload, headers=headers)
         return response.json()
-    except:
-        return {"stat": "Not_Ok", "emsg": f"Invalid response: {response.text}"}
+    except Exception as e:
+        return {"stat": "Not_Ok", "emsg": f"ModifyOrder Exception: {str(e)}"}
 
     def order_book(self):
         url = f"{self.base_url}/OrderBook"
