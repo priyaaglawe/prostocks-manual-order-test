@@ -145,6 +145,33 @@ class ProStocksAPI:
         except requests.exceptions.RequestException as e:
             print("❌ Place order exception:", e)
             return {"stat": "Not_Ok", "emsg": str(e)}
+    def modify_order(self, norenordno, tsym, qty, prctyp, prc):
+        url = f"{self.base_url}/ModifyOrder"
+        jdata = {
+            "uid": self.userid,
+            "exch": "NSE",  # You can modify this to be dynamic if needed
+            "norenordno": norenordno,
+            "tsym": tsym,
+            "qty": str(qty),
+            "prctyp": prctyp,
+            "prc": str(prc),
+            "ret": "DAY",
+            "dscqty": "0",
+            "ordersource": "WEB"
+        }
+        payload = {
+            "jKey": self.session_token,
+            "jData": json.dumps(jdata)
+        }
+        try:
+            response = self.session.post(url, data=payload, headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": self.session_token
+            })
+            print("🔁 Modify Order Response:", response.text)
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": str(e)}
 
     def order_book(self):
         url = f"{self.base_url}/OrderBook"
