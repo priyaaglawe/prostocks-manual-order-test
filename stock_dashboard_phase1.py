@@ -119,18 +119,18 @@ if "ps_api" in st.session_state:
             st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
     if "order_book" in st.session_state:
-        for order in st.session_state["order_book"]:
-            col1, col2, col3 = st.columns([4, 2, 2])
-            with col1:
-                st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
-            with col2:
-                if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
-                    cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
-                    st.write(cancel_resp)
-            with col3:
-                if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
-    st.session_state["modify_form"] = order
-    st.experimental_rerun()
+    for order in st.session_state["order_book"]:
+        col1, col2, col3 = st.columns([4, 2, 2])
+        with col1:
+            st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
+        with col2:
+            if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
+                cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                st.write(cancel_resp)
+        with col3:
+            if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
+                st.session_state["modify_form"] = order
+                st.experimental_rerun()
 
     if "modify_form" in st.session_state:
         order = st.session_state["modify_form"]
