@@ -115,72 +115,49 @@ if "ps_api" in st.session_state:
     if isinstance(order_book, list):
         st.subheader("📒 Order Book")
         st.table(order_book)
-   elif isinstance(order_book, dict) and order_book.get("stat") == "Ok":
-    orders = order_book.get("data") or order_book.get("orders") or []
-    if orders:
-        for order in orders:
-            st.json(order)
-            status = order.get("status", "")
-            st.markdown(f"### 🔎 Order Status: **{status}**")
 
-            # ✅ Modify Order Form if status is OPEN or PENDING
-            if status in ["OPEN", "PENDING"]:
-                with st.expander(f"🛠 Modify Order {order['norenordno']}"):
-                    with st.form(f"modify_form_{order['norenordno']}"):
-                        mod_qty = st.number_input("New Quantity", value=int(order["qty"]), step=1, key=f"qty_{order['norenordno']}")
-                        mod_price_type = st.selectbox(
-                            "Price Type", ["LMT", "MKT"],
-                            index=0 if order["prctyp"] == "LMT" else 1,
-                            key=f"ptype_{order['norenordno']}"
-                        )
-                        mod_price = st.number_input("New Price", value=float(order.get("prc", 0)), step=0.05, key=f"prc_{order['norenordno']}")
+    elif isinstance(order_book, dict) and order_book.get("stat") == "Ok":
+        orders = order_book.get("data") or order_book.get("orders") or []
+        if orders:
+            for order in orders:
+                st.json(order)
+                status = order.get("status", "")
+                st.markdown(f"### 🔎 Order Status: **{status}**")
 
-                        submit_mod = st.form_submit_button("🔁 Submit Modification")
-
-                        if submit_mod:
-                            mod_resp = st.session_state["ps_api"].modify_order(
-                                norenordno=order["norenordno"],
-                                tsym=order["tsym"],
-                                qty=mod_qty,
-                                prctyp=mod_price_type,
-                                prc=mod_price if mod_price_type == "LMT" else "0"
+                # ✅ Modify Order Form if status is OPEN or PENDING
+                if status in ["OPEN", "PENDING"]:
+                    with st.expander(f"🛠 Modify Order {order['norenordno']}"):
+                        with st.form(f"modify_form_{order['norenordno']}"):
+                            mod_qty = st.number_input("New Quantity", value=int(order["qty"]), step=1, key=f"qty_{order['norenordno']}")
+                            mod_price_type = st.selectbox(
+                                "Price Type", ["LMT", "MKT"],
+                                index=0 if order["prctyp"] == "LMT" else 1,
+                                key=f"ptype_{order['norenordno']}"
                             )
-                            if mod_resp.get("stat") == "Ok":
-                                st.success(f"✅ Order Modified: {mod_resp.get('result', 'Success')}")
-                            else:
-                                st.error(f"❌ Modify Failed: {mod_resp.get('emsg', 'Unknown error')}")
+                            mod_price = st.number_input("New Price", value=float(order.get("prc", 0)), step=0.05, key=f"prc_{order['norenordno']}")
 
-                    # Add Modify button per order
-            if status in ["PENDING", "OPEN"]:
-                with st.expander(f"🛠 Modify Order {order['norenordno']}"):
-                    with st.form(f"modify_form_{order['norenordno']}"):
-                        mod_qty = st.number_input("New Quantity", value=int(order["qty"]), step=1, key=f"qty_{order['norenordno']}")
-                        mod_price_type = st.selectbox("Price Type", ["LMT", "MKT"],
-                                                      index=0 if order["prctyp"] == "LMT" else 1,
-                                                      key=f"ptype_{order['norenordno']}")
-                        mod_price = st.number_input("New Price", value=float(order.get("prc", 0)),
-                                                    step=0.05, key=f"prc_{order['norenordno']}")
+                            submit_mod = st.form_submit_button("🔁 Submit Modification")
 
-                        submit_mod = st.form_submit_button("🔁 Submit Modification")
-
-                        if submit_mod:
-                            mod_resp = st.session_state["ps_api"].modify_order(
-                                norenordno=order["norenordno"],
-                                tsym=order["tsym"],
-                                qty=mod_qty,
-                                prctyp=mod_price_type,
-                                prc=mod_price if mod_price_type == "LMT" else "0"
-                            )
-                            if mod_resp.get("stat") == "Ok":
-                                st.success(f"✅ Order Modified: {mod_resp.get('result')}")
-                            else:
-                                st.error(f"❌ Modify Failed: {mod_resp.get('emsg', 'Unknown error')}")
-                                
+                            if submit_mod:
+                                mod_resp = st.session_state["ps_api"].modify_order(
+                                    norenordno=order["norenordno"],
+                                    tsym=order["tsym"],
+                                    qty=mod_qty,
+                                    prctyp=mod_price_type,
+                                    prc=mod_price if mod_price_type == "LMT" else "0"
+                                )
+                                if mod_resp.get("stat") == "Ok":
+                                    st.success(f"✅ Order Modified: {mod_resp.get('result', 'Success')}")
+                                else:
+                                    st.error(f"❌ Modify Failed: {mod_resp.get('emsg', 'Unknown error')}")
         else:
             st.info("ℹ️ No orders found.")
+
     elif isinstance(order_book, dict) and order_book.get("stat") == "Not_Ok":
         st.warning(f"⚠️ Order Book Error: {order_book.get('emsg')}")
+
     else:
         st.warning("⚠️ Unexpected response from order book.")
+
 else:
     st.warning("🔒 Please log in to view your order book.")
