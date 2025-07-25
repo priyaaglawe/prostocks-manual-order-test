@@ -160,8 +160,13 @@ if "ps_api" in st.session_state:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    st.markdown("### 📒 Order Book Status")
+    if "modify_form" not in st.session_state and st.button("📒 View Full Order Book"):
     order_book = st.session_state["ps_api"].order_book()
+    st.session_state["latest_order_book"] = order_book
+
+if "latest_order_book" in st.session_state and "modify_form" not in st.session_state:
+    order_book = st.session_state["latest_order_book"]
+    st.markdown("### 📒 Order Book Status")
 
     if isinstance(order_book, list):
         st.subheader("📒 Order Book")
