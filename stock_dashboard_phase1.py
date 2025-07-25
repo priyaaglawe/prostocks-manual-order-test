@@ -129,8 +129,8 @@ if "ps_api" in st.session_state:
                     st.write(cancel_resp)
             with col3:
                 if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
-                    st.session_state["modify_form"] = order
-                    st.rerun()
+    st.session_state["modify_form"] = order
+    st.experimental_rerun()
 
     if "modify_form" in st.session_state:
         order = st.session_state["modify_form"]
