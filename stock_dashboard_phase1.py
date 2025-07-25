@@ -124,21 +124,16 @@ if "ps_api" in st.session_state:
                 status = order.get("status", "")
                 st.markdown(f"### 🔎 Order Status: **{status}**")
 
-                # ✅ Modify Order Form if status is OPEN or PENDING
                 if status in ["OPEN", "PENDING"]:
                     with st.expander(f"🛠 Modify Order {order['norenordno']}"):
                         with st.form(f"modify_form_{order['norenordno']}"):
-                            mod_qty = st.number_input(
-                                "New Quantity", value=int(order["qty"]), step=1, key=f"qty_{order['norenordno']}"
-                            )
+                            mod_qty = st.number_input("New Quantity", value=int(order["qty"]), step=1, key=f"qty_{order['norenordno']}")
                             mod_price_type = st.selectbox(
                                 "Price Type", ["LMT", "MKT"],
                                 index=0 if order["prctyp"] == "LMT" else 1,
                                 key=f"ptype_{order['norenordno']}"
                             )
-                            mod_price = st.number_input(
-                                "New Price", value=float(order.get("prc", 0)), step=0.05, key=f"prc_{order['norenordno']}"
-                            )
+                            mod_price = st.number_input("New Price", value=float(order.get("prc", 0)), step=0.05, key=f"prc_{order['norenordno']}")
 
                             submit_mod = st.form_submit_button("🔁 Submit Modification")
 
@@ -155,6 +150,16 @@ if "ps_api" in st.session_state:
                                     st.success(f"✅ Order Modified: {mod_resp.get('result', 'Success')}")
                                 else:
                                     st.error(f"❌ Modify Failed: {mod_resp.get('emsg', 'Unknown error')}")
+
+                    if st.button(f"❌ Cancel Order {order['norenordno']}"):
+                        cancel_resp = st.session_state["ps_api"].cancel_order(
+                            norenordno=order["norenordno"],
+                            uid=st.session_state["ps_api"].userid
+                        )
+                        if cancel_resp.get("stat") == "Ok":
+                            st.success(f"✅ Order Cancelled: {cancel_resp.get('result')}")
+                        else:
+                            st.error(f"❌ Cancel Failed: {cancel_resp.get('emsg', 'Unknown error')}")
         else:
             st.info("ℹ️ No orders found.")
 
