@@ -63,6 +63,30 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
 
 # MAIN DASHBOARD
 if "ps_api" in st.session_state:
+    # MAIN DASHBOARD
+if "ps_api" in st.session_state or "jKey" in st.session_state:
+
+    # ✅ Ensure ps_api is always accessible when jKey/session exists
+    if "ps_api" not in st.session_state:
+        if "jKey" in st.session_state:
+            st.session_state["ps_api"] = ProStocksAPI(
+                userid=creds["uid"],
+                password_plain=creds["pwd"],
+                factor2=creds["factor2"],
+                vc=creds["vc"],
+                api_key=creds["api_key"],
+                imei=creds["imei"],
+                base_url=creds["base_url"],
+                apkversion=creds["apkversion"]
+            )
+            st.session_state["ps_api"].set_session_token(st.session_state["jKey"])
+        else:
+            st.warning("⚠️ Login or enter jKey first.")
+            st.stop()
+
+    # ✅ Now safe to use ps_api
+    ps_api = st.session_state["ps_api"]
+
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
         logs = run_uat_test(ps_api=st.session_state["ps_api"])
