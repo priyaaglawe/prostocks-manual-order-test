@@ -61,30 +61,8 @@ with st.expander("🔑 Advanced: Update jKey Manually"):
         st.session_state["ps_api"].session_token = new_jkey
         st.success("✅ jKey updated in session.")
 
-# === MAIN DASHBOARD AREA
-if "ps_api" in st.session_state or "jKey" in st.session_state:
-
-    # ✅ Ensure ps_api is always accessible when jKey/session exists
-    if "ps_api" not in st.session_state:
-        if "jKey" in st.session_state:
-            st.session_state["ps_api"] = ProStocksAPI(
-                userid=creds["uid"],
-                password_plain=creds["pwd"],
-                factor2=creds["factor2"],
-                vc=creds["vc"],
-                api_key=creds["api_key"],
-                imei=creds["imei"],
-                base_url=creds["base_url"],
-                apkversion=creds["apkversion"]
-            )
-            st.session_state["ps_api"].set_session_token(st.session_state["jKey"])
-        else:
-            st.warning("⚠️ Login or enter jKey first.")
-            st.stop()
-
-    # ✅ Now safe to use ps_api
-    ps_api = st.session_state["ps_api"]
-
+# MAIN DASHBOARD
+if "ps_api" in st.session_state:
     st.markdown("### 🔍 UAT Testing Section")
     if st.button("▶️ Run Full UAT Test"):
         logs = run_uat_test(ps_api=st.session_state["ps_api"])
@@ -133,62 +111,28 @@ if "ps_api" in st.session_state or "jKey" in st.session_state:
 
     st.markdown("### ❌ Cancel / 🛠 Modify Orders")
 
-# Optional: Add refresh button
-if st.button("📘 Refresh Order Book"):
-    order_book = ps_api.order_book()
+    if st.button("📘 Refresh Order Book"):
+        orders = st.session_state["ps_api"].order_book()
+        if isinstance(orders, dict) and orders.get("stat") == "Ok":
+            st.session_state["order_book"] = orders.get("data", [])
+        else:
+            st.error(f"⚠️ Order Book Error: {orders.get('emsg', 'Unknown error')}")
 
-   # Normalize to a list of orders
-orders = []
-
-if isinstance(order_book, dict):
-    if "data" in order_book and isinstance(order_book["data"], list):
-        orders = order_book["data"]
-    elif "norenordno" in order_book:  # Single order dict
-        orders = [order_book]
-elif isinstance(order_book, list):
-    orders = order_book
-
-st.session_state["order_book"] = orders
-
-
-# Show orders if available
-if "order_book" in st.session_state and st.session_state["order_book"]:
-    st.markdown("#### 📒 Order Book Status")
-    
-    for order in st.session_state["order_book"]:
-        # ✅ Print full order for debug
-        st.json(order)
-
-        # ✅ Check status and allow cancel/modify
-        if order.get("status", "").upper() in ["OPEN", "PENDING"]:
-            col1, col2, col3 = st.columns([5, 2, 2])
-
+    if "order_book" in st.session_state:
+        for order in st.session_state["order_book"]:
+            col1, col2, col3 = st.columns([4, 2, 2])
             with col1:
-                st.write(
-                    f"🔹 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']} | Price: {order['prc']} | Status: {order['status']}"
-                )
-
+                st.write(f"🔸 {order['tsym']} | Qty: {order['qty']} | Type: {order['prctyp']}")
             with col2:
                 if st.button("❌ Cancel", key="cancel_" + order["norenordno"]):
-                    cancel_resp = ps_api.cancel_order(order["norenordno"])
-                    st.success(f"✅ Cancelled: {cancel_resp}")
-                    st.rerun()
-
+                    cancel_resp = st.session_state["ps_api"].cancel_order(order["norenordno"])
+                    st.write(cancel_resp)
             with col3:
                 if st.button("🛠 Modify", key="modify_" + order["norenordno"]):
                     st.session_state["modify_form"] = order
                     st.rerun()
-        else:
-            st.write(f"ℹ️ Skipping order {order['norenordno']} (Status: {order['status']})")
-
-else:
-    st.info("ℹ️ No Pending or Open orders found.")
 
     if "modify_form" in st.session_state:
-        if st.button("🧹 Cancel Modify Mode"):
-            del st.session_state["modify_form"]
-            st.rerun()
-
         order = st.session_state["modify_form"]
         st.markdown("### 🛠 Modify Order Form")
         with st.form("modify_order_form"):
@@ -216,13 +160,8 @@ else:
                 st.write("Response:", new_order)
                 del st.session_state["modify_form"]
 
-    if "modify_form" not in st.session_state and st.button("📒 View Full Order Book"):
-        order_book = st.session_state["ps_api"].order_book()
-        st.session_state["latest_order_book"] = order_book
-
-if "latest_order_book" in st.session_state and "modify_form" not in st.session_state:
-    order_book = st.session_state["latest_order_book"]
     st.markdown("### 📒 Order Book Status")
+    order_book = st.session_state["ps_api"].order_book()
 
     if isinstance(order_book, list):
         st.subheader("📒 Order Book")
@@ -246,4 +185,4 @@ if "latest_order_book" in st.session_state and "modify_form" not in st.session_s
     else:
         st.warning("⚠️ Unexpected response from order book.")
 else:
-    st.warning("🔒 Please log in to view your order book")
+    st.warning("🔒 Please log in to view your order book.")
