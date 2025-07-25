@@ -171,6 +171,36 @@ class ProStocksAPI:
         except Exception as e:
             return {"stat": "Not_Ok", "emsg": f"ModifyOrder Exception: {str(e)}"}
 
+    def cancel_order(self, norenordno, uid=None, ext_remarks=None):
+        """
+        Cancel an order using Noren Order Number.
+
+        :param norenordno: Order number to cancel.
+        :param uid: User ID (optional, will default to self.userid)
+        :param ext_remarks: Optional remarks.
+        :return: JSON response from the cancel endpoint.
+        """
+        url = f"{self.base_url}/CancelOrder"
+        jdata = {
+            "norenordno": norenordno,
+            "uid": uid or self.userid,
+        }
+        if ext_remarks:
+            jdata["ext_remarks"] = ext_remarks
+
+        payload = f"jData={json.dumps(jdata)}&jKey={self.session_token}"
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+
+        try:
+            response = requests.post(url, data=payload, headers=headers)
+            print("📨 Cancel Order Response:", response.text)
+            return response.json()
+        except Exception as e:
+            return {"stat": "Not_Ok", "emsg": f"CancelOrder Exception: {str(e)}"}
+
     def order_book(self):
         url = f"{self.base_url}/OrderBook"
         jdata = {"uid": self.userid}
@@ -227,4 +257,3 @@ def login_ps(user_id=None, password=None, factor2=None, app_key=None):
     except Exception as e:
         print("❌ Login Exception:", e)
         return None
-
