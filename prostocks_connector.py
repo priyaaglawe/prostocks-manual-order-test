@@ -1,4 +1,4 @@
-# prostocks_login_only.py
+# prostocks_connector.py
 
 import hashlib
 import requests
@@ -172,16 +172,6 @@ class ProStocksAPI:
         url = f"{self.base_url}/TradeBook"
         payload = f"jData={{\"uid\":\"{self.userid}\"}}&jKey={self.session_token}"
         return self._post(url, payload)
-
-    def cancel_order(self, order_number):
-        url = f"{self.base_url}/CancelOrder"
-        payload = {
-            "uid": self.userid,
-            "norenordno": order_number
-        }
-        jdata = json.dumps(payload, separators=(",", ":"))
-        data = f"jData={jdata}&jKey={self.session_token}"
-        return self._post(url, data)
 
 # ✅ Helper function to log in with environment support
 def login_ps(user_id=None, password=None, factor2=None, app_key=None):
